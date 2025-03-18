@@ -1,7 +1,11 @@
-import { Controller } from '@nestjs/common';
+import {Controller, UseGuards} from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { GrpcMethod } from '@nestjs/microservices';
+import {ApiBearerAuth} from "@nestjs/swagger";
+import {KeycloakAuthGuard} from "../auth/keycloak-auth.guard";
 
+@ApiBearerAuth()
+@UseGuards(KeycloakAuthGuard)
 @Controller('notifications')
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}

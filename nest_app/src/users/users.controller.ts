@@ -8,8 +8,7 @@ import {
   Delete,
   Query,
   HttpCode,
-  HttpStatus,
-  //   UseGuards,
+  HttpStatus, UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/users.dto';
@@ -17,15 +16,14 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiQuery,
-  //   ApiBearerAuth,
+  ApiQuery, ApiBearerAuth,
 } from '@nestjs/swagger';
 import { User } from '../entities/user.entity';
-// import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import {KeycloakAuthGuard} from "../auth/keycloak-auth.guard";
 
 @ApiTags('users')
-// @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
+@UseGuards(KeycloakAuthGuard)
 @Controller('api/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

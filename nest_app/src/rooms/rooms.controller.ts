@@ -8,23 +8,21 @@ import {
   Body,
   Query,
   HttpCode,
-  HttpStatus,
-  // UseGuards,
+  HttpStatus, UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
-  // ApiBearerAuth,
   ApiResponse,
-  ApiQuery,
+  ApiQuery, ApiBearerAuth,
 } from '@nestjs/swagger';
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto, UpdateRoomDto } from '../dto/rooms.dto';
-// import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import {KeycloakAuthGuard} from "../auth/keycloak-auth.guard";
 
 @ApiTags('rooms')
-// @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@UseGuards(KeycloakAuthGuard)
 @Controller('api/rooms')
 export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
