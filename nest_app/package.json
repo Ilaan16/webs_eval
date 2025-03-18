@@ -17,14 +17,17 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "generate-typings": "ts-node -r tsconfig-paths/register src/graphql/generate-typings.ts"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.13.0",
     "@grpc/proto-loader": "^0.7.13",
+    "@nestjs/apollo": "^13.0.3",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.1",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/graphql": "^13.0.3",
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/microservices": "^11.0.11",
     "@nestjs/passport": "^11.0.5",
@@ -37,7 +40,9 @@
     "passport-jwt": "^4.0.1",
     "pg": "^8.14.1",
     "reflect-metadata": "^0.2.2",
+    "request-promise-native": "^1.0.9",
     "rxjs": "^7.8.1",
+    "ts-morph": "^25.0.1",
     "typeorm": "^0.3.21"
   },
   "devDependencies": {
