@@ -4,6 +4,7 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  RelationId,
 } from 'typeorm';
 import { Reservation } from './reservation.entity';
 
@@ -12,11 +13,12 @@ export class Notification {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Reservation, (reservation) => reservation.id, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Reservation)
   @JoinColumn({ name: 'reservation_id' })
   reservation: Reservation;
+
+  @RelationId((notification: Notification) => notification.reservation)
+  reservationId: number;
 
   @Column({ type: 'text' })
   message: string;

@@ -5,6 +5,7 @@ import {
   ManyToOne,
   CreateDateColumn,
   JoinColumn,
+  RelationId,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Room } from './room.entity';
@@ -14,13 +15,19 @@ export class Reservation {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Room, (room) => room.id, { onDelete: 'CASCADE' })
+  @RelationId((reservation: Reservation) => reservation.user)
+  userId: number;
+
+  @ManyToOne(() => Room)
   @JoinColumn({ name: 'room_id' })
   room: Room;
+
+  @RelationId((reservation: Reservation) => reservation.room)
+  roomId: number;
 
   @Column({ type: 'timestamp' })
   start_time: Date;
