@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package extracts;
+
+service Extracts {
+  rpc GenerateUserExtract (GenerateUserExtractRequest) returns (GenerateUserExtractResponse) {}
+}
+
+message GenerateUserExtractRequest {
+  int32 user_id = 1;
+}
+
+message GenerateUserExtractResponse {
+  string url = 1;
+} 
