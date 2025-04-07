@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="359f7b1b-995e-4bb3-af4d-678a0b505fcf" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/docs/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/api_graphql.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/api_grpc.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/api_rest.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/database.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/docker-compose.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/groups.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/groups.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/img_1.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/minio.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/rendu.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/todo.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/.prettierrc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/eslint.config.mjs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/nest-cli.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/package-lock.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/proto/extracts.proto" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/proto/notifications.proto" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/app.controller.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/app.controller.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/app.module.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/app.service.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/auth/auth.module.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/auth/guards/jwt-auth.guard.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/auth/jwt.strategy.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/auth/keycloak-auth.guard.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/dto/notifications.dto.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/dto/reservations.dto.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/dto/rooms.dto.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/dto/users.dto.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/entities/notification.entity.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/entities/reservation.entity.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/entities/room.entity.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/entities/user.entity.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/extracts/extracts.controller.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/extracts/extracts.module.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/extracts/extracts.service.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/graphql/auth/graphql-auth.guard.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/graphql/generate-typings.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/graphql/graphql.module.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/graphql/graphql.schema.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/graphql/resolvers/auth.resolver.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/graphql/resolvers/reservations.resolver.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/graphql/resolvers/rooms.resolver.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/graphql/resolvers/users.resolver.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/graphql/schema.graphql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/main.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/minio/minio.module.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/minio/minio.service.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/notifications/notifications.controller.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/notifications/notifications.controller.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/notifications/notifications.module.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/notifications/notifications.service.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/notifications/notifications.service.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/reservations/reservations.controller.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/reservations/reservations.controller.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/reservations/reservations.module.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/reservations/reservations.service.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/reservations/reservations.service.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/rooms/rooms.controller.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/rooms/rooms.controller.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/rooms/rooms.module.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/rooms/rooms.service.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/rooms/rooms.service.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/users/users.controller.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/users/users.controller.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/users/users.module.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/users/users.service.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/src/users/users.service.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/test/app.e2e-spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/test/grpc-client.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/test/jest-e2e.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/tsconfig.build.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/nest_app/tsconfig.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/api-graphql/reservation.e2e.test.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/api-graphql/room.e2e.test.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/api-grpc/extract.e2e.test.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/api-grpc/notification.e2e.test.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/api-rest/reservation.e2e.test.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/api-rest/rooms.e2e.test.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/api-rest/users.e2e.test.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/cleanup.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/setup.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/utils/db.utils.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/utils/grpc.utils.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/utils/room.utils.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/utils/user.utils.js" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="2vP1KulBDC8AXU7sMtyP10cmfDU" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "feat-keyclock",
+    "ignore_missing_gitignore": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.standard": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.standard": "",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "C:\\Users\\miist\\Documents\\webs_eval\\api-graphql\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\miist\Documents\webs_eval" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-WS-242.23339.15" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="359f7b1b-995e-4bb3-af4d-678a0b505fcf" name="Changes" comment="" />
+      <created>1744031836597</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1744031836597</updated>
+      <workItem from="1744031838889" duration="964000" />
+      <workItem from="1744036209040" duration="374000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="package.json" />
+  </component>
+</project>

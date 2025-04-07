@@ -28,3 +28,24 @@ services:
     - /data
     - --console-address
     - ":9090"
+  api:
+    build:
+      context: ./nest_app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=pguser
+      - DB_PASSWORD=pgpass
+      - DB_NAME=pgdb
+      - KEYCLOAK_URL=http://keycloak:8080
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+    depends_on:
+      - db
+      - keycloak
+      - minio
