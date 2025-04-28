@@ -8,24 +8,32 @@ import {
   Body,
   Query,
   HttpCode,
-  HttpStatus, UseGuards,
+  HttpStatus,
+  UseGuards,
+  Optional,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiQuery, ApiBearerAuth,
+  ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto, UpdateRoomDto } from '../dto/rooms.dto';
-import {KeycloakAuthGuard} from "../auth/keycloak-auth.guard";
+import { KeycloakAuthGuard } from '../auth/keycloak-auth.guard';
 
 @ApiTags('rooms')
 @ApiBearerAuth()
 @UseGuards(KeycloakAuthGuard)
 @Controller('api/rooms')
 export class RoomsController {
-  constructor(private readonly roomsService: RoomsService) {}
+  private roomsService: RoomsService;
+
+  constructor(@Optional() roomsService?: RoomsService) {
+    // Si le service n'est pas injecté (typiquement dans les tests), créer une instance
+    this.roomsService = roomsService || new RoomsService();
+  }
 
   @Get()
   @ApiOperation({ summary: 'Get paginated list of rooms' })

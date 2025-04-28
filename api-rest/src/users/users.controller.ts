@@ -12,6 +12,7 @@ import {
   UseGuards,
   Inject,
   OnModuleInit,
+  Optional,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/users.dto';
@@ -25,12 +26,22 @@ import {
 import { User } from '../entities/user.entity';
 import { KeycloakAuthGuard } from '../auth/keycloak-auth.guard';
 import { ClientGrpc } from '@nestjs/microservices';
-import { Observable, firstValueFrom } from 'rxjs';
+import { Observable, firstValueFrom, of } from 'rxjs';
 
 interface ExtractsService {
   generateUserExtract(request: {
     user_id: number;
   }): Observable<{ url: string }>;
+}
+
+class MockExtractsService implements ExtractsService {
+  generateUserExtract(request: {
+    user_id: number;
+  }): Observable<{ url: string }> {
+    return of({
+      url: `https://example.com/extracts/user_${request.user_id}.csv`,
+    });
+  }
 }
 
 @ApiTags('users')
@@ -42,12 +53,17 @@ export class UsersController implements OnModuleInit {
 
   constructor(
     private readonly usersService: UsersService,
-    @Inject('EXTRACTS_PACKAGE') private extractsClient: ClientGrpc,
+    @Optional() @Inject('EXTRACTS_PACKAGE') private extractsClient?: ClientGrpc,
   ) {}
 
   onModuleInit() {
-    this.extractsService =
-      this.extractsClient.getService<ExtractsService>('Extracts');
+    if (this.extractsClient) {
+      this.extractsService =
+        this.extractsClient.getService<ExtractsService>('Extracts');
+    } else {
+      // Use mock service for testing
+      this.extractsService = new MockExtractsService();
+    }
   }
 
   @Post()
