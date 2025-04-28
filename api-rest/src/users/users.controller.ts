@@ -8,7 +8,10 @@ import {
   Delete,
   Query,
   HttpCode,
-  HttpStatus, UseGuards,
+  HttpStatus,
+  UseGuards,
+  Inject,
+  OnModuleInit,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/users.dto';
@@ -16,17 +19,36 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiQuery, ApiBearerAuth,
+  ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { User } from '../entities/user.entity';
-import {KeycloakAuthGuard} from "../auth/keycloak-auth.guard";
+import { KeycloakAuthGuard } from '../auth/keycloak-auth.guard';
+import { ClientGrpc } from '@nestjs/microservices';
+import { Observable, firstValueFrom } from 'rxjs';
+
+interface ExtractsService {
+  generateUserExtract(request: {
+    user_id: number;
+  }): Observable<{ url: string }>;
+}
 
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(KeycloakAuthGuard)
 @Controller('api/users')
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+export class UsersController implements OnModuleInit {
+  private extractsService: ExtractsService;
+
+  constructor(
+    private readonly usersService: UsersService,
+    @Inject('EXTRACTS_PACKAGE') private extractsClient: ClientGrpc,
+  ) {}
+
+  onModuleInit() {
+    this.extractsService =
+      this.extractsClient.getService<ExtractsService>('Extracts');
+  }
 
   @Post()
   @ApiOperation({ summary: 'Create a new user' })
@@ -82,5 +104,34 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found.' })
   findByKeycloakId(@Param('keycloakId') keycloakId: string): Promise<User> {
     return this.usersService.findByKeycloakId(keycloakId);
+  }
+
+  @Get(':id/extract')
+  @ApiOperation({ summary: 'Generate a CSV extract of user reservations' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns a URL to download the CSV file.',
+    schema: {
+      type: 'object',
+      properties: {
+        url: {
+          type: 'string',
+          example:
+            'https://minio.example.com/reservations-csv/user_10_1678812345.csv',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  async generateExtract(@Param('id') id: string) {
+    // First verify the user exists
+    await this.usersService.findOne(+id);
+
+    // Call the gRPC service to generate the extract
+    const response = await firstValueFrom(
+      this.extractsService.generateUserExtract({ user_id: +id }),
+    );
+
+    return { url: response.url };
   }
 }
