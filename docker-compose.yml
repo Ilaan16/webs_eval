@@ -21,10 +21,45 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-      - "50051:50051" # Notifications gRPC
-      - "50052:50052" # Extracts gRPC
     environment:
       - NODE_ENV=production
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USERNAME=pguser
+      - DATABASE_PASSWORD=pgpass
+      - DATABASE_NAME=pgdb
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_USE_SSL=false
+      - GRPC_SERVICE_URL=grpc-service:50051
+    restart: always
+    depends_on:
+      - db
+      - minio
+      - grpc-service
+
+  api-graphql:
+    container_name: api-graphql
+    build:
+      context: ./api-graphql
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - GRPC_SERVICE_URL=grpc-service:50051
+    depends_on:
+      - grpc-service
+
+  grpc-service:
+    container_name: grpc-service
+    build:
+      context: ./grpc-service
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    environment:
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_USERNAME=pguser
@@ -39,14 +74,6 @@ services:
     depends_on:
       - db
       - minio
-
-  api-graphql:
-    container_name: api-graphql
-    build:
-      context: ./api-graphql
-      dockerfile: Dockerfile
-    ports:
-      - "3001:3001"
 
   minio:
     container_name: minio
