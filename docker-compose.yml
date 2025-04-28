@@ -46,7 +46,7 @@ services:
       context: ./api-graphql
       dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "4000:4000"
     environment:
       - GRPC_SERVICE_URL=grpc-service:50051
     depends_on:
