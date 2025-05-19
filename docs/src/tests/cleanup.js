@@ -44,8 +44,8 @@ async function getAdminAccessToken() {
 }
 
 async function cleanupTables() {
-    console.log('=== Truncating tables ===');
-    // Attention à l’ordre si vous avez des clés étrangères
+    //console.log('=== Truncating tables ===');
+    // Attention à l'ordre si vous avez des clés étrangères
 // Utilisation :
     await safeTruncate(pool, 'notifications');
     await safeTruncate(pool, 'reservations');
@@ -54,7 +54,7 @@ async function cleanupTables() {
 }
 
 async function fetchAndInsertKeycloakUsers(adminToken) {
-    console.log('=== Fetching users from Keycloak ===');
+    //console.log('=== Fetching users from Keycloak ===');
     const url = `${KEYCLOAK_URL}/admin/realms/${KEYCLOAK_REALM}/users?max=1000`;
 
     const res = await axios.get(url, {
@@ -64,7 +64,7 @@ async function fetchAndInsertKeycloakUsers(adminToken) {
     });
 
     const keycloakUsers = res.data; // Liste d'utilisateurs
-    console.log(`Found ${keycloakUsers.length} users in Keycloak.`);
+    //console.log(`Found ${keycloakUsers.length} users in Keycloak.`);
 
     for (const user of keycloakUsers) {
         const keycloakId = user.id; // champ "id" côté Keycloak
@@ -73,8 +73,8 @@ async function fetchAndInsertKeycloakUsers(adminToken) {
         // Insertion dans la table "users" locale
         // Champs : keycloak_id, email, created_at
         await pool.query(
-            `INSERT INTO "users" ("keycloak_id", email, "created_at", "updated_at")
-       VALUES ($1, $2, NOW(), NOW())
+            `INSERT INTO "users" ("keycloak_id", email, "created_at")
+       VALUES ($1, $2, NOW())
        ON CONFLICT ("keycloak_id") DO NOTHING;`,
             [keycloakId, email]
         );
@@ -92,7 +92,7 @@ async function main() {
         // 3) Récupérer la liste des users Keycloak et insérer dans DB
         await fetchAndInsertKeycloakUsers(adminToken);
 
-        console.log('=== Cleanup & Keycloak user sync completed ===');
+        //console.log('=== Cleanup & Keycloak user sync completed ===');
     } catch (err) {
         console.error('Error in cleanupDB script:', err);
     } finally {
@@ -114,7 +114,7 @@ async function safeTruncate(pool, tableName) {
 
 
 beforeAll(async () => {
-    console.log('=== Starting cleanupDB script ===');
+    //console.log('=== Starting cleanupDB script ===');
     await main();
 }, 10000); // Timeout de 10 secondes pour le beforeAll
 module.exports = { main };

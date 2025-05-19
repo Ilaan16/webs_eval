@@ -20,7 +20,7 @@
 - [API GraphQL](api_graphql.md)
 - [API gRPC](api_grpc.md)
 - [Base de données](database.md)
-- [Keycloak](../keycloak/keycloak.md)
+- [Keycloak](keycloak.md)
 - [MinIO](minio.md)
 
 ## Docker compose

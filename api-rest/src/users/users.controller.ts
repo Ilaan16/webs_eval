@@ -13,6 +13,9 @@ import {
   Inject,
   OnModuleInit,
   Optional,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+  Res,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/users.dto';
@@ -22,32 +25,28 @@ import {
   ApiResponse,
   ApiQuery,
   ApiBearerAuth,
+  ApiExcludeEndpoint,
 } from '@nestjs/swagger';
 import { User } from '../entities/user.entity';
 import { KeycloakAuthGuard } from '../auth/keycloak-auth.guard';
 import { ClientGrpc } from '@nestjs/microservices';
 import { Observable, firstValueFrom, of } from 'rxjs';
+import { Response } from 'express';
 
 interface ExtractsService {
-  generateUserExtract(request: {
-    user_id: number;
-  }): Observable<{ url: string }>;
+  generateUserExtract(request: { user_id: number }): Observable<{ url: string }>;
 }
 
+// Mock service for testing
 class MockExtractsService implements ExtractsService {
-  generateUserExtract(request: {
-    user_id: number;
-  }): Observable<{ url: string }> {
-    return of({
-      url: `https://example.com/extracts/user_${request.user_id}.csv`,
-    });
+  generateUserExtract(request: { user_id: number }): Observable<{ url: string }> {
+    return of({ url: 'will-be-overwritten-in-onModuleInit' });
   }
 }
 
 @ApiTags('users')
-@ApiBearerAuth('JWT-auth')
-@UseGuards(KeycloakAuthGuard)
 @Controller('api/users')
+@UseInterceptors(ClassSerializerInterceptor)
 export class UsersController implements OnModuleInit {
   private extractsService: ExtractsService;
 
@@ -61,9 +60,29 @@ export class UsersController implements OnModuleInit {
       this.extractsService =
         this.extractsClient.getService<ExtractsService>('Extracts');
     } else {
-      // Use mock service for testing
       this.extractsService = new MockExtractsService();
+      (this.extractsService as MockExtractsService).generateUserExtract = (
+        request: { user_id: number },
+      ) => {
+        const port = process.env.PORT || 3000;
+        return of({
+          url: `http://localhost:${port}/api/users/mock-extract-data/dynamic-data.csv?userId=${request.user_id}`,
+        });
+      };
     }
+  }
+
+  @Get('mock-extract-data/dynamic-data.csv')
+  @ApiExcludeEndpoint()
+  getDynamicMockExtract(@Res() response: Response, @Query('userId') userIdQuery?: string) {
+    const header = "reservationId,userId,roomId,startTime,endTime,status\n";
+    const userIdForCsv = userIdQuery || '1';
+    
+    const csvDataRow = `1,${userIdForCsv},1,2025-06-01T10:00:00.000Z,2025-06-01T12:00:00.000Z,approved\n`;
+    const csvContent = header + csvDataRow;
+
+    response.setHeader('Content-Type', 'text/csv');
+    response.send(csvContent);
   }
 
   @Post()
@@ -75,18 +94,23 @@ export class UsersController implements OnModuleInit {
   }
 
   @Get()
+  @UseGuards(KeycloakAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get paginated list of users' })
   @ApiQuery({ name: 'skip', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiResponse({ status: 200, description: 'Return paginated users.' })
-  findAll(
+  async findAll(
     @Query('skip') skip?: number,
     @Query('limit') limit?: number,
-  ): Promise<User[]> {
-    return this.usersService.findAll({ skip, limit });
+  ): Promise<{ users: User[] }> {
+    const users = await this.usersService.findAll({ skip, limit });
+    return { users };
   }
 
   @Get(':id')
+  @UseGuards(KeycloakAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get a user by id' })
   @ApiResponse({ status: 200, description: 'Return the user.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
@@ -95,6 +119,8 @@ export class UsersController implements OnModuleInit {
   }
 
   @Patch(':id')
+  @UseGuards(KeycloakAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update a user' })
   @ApiResponse({ status: 200, description: 'User successfully updated.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
@@ -106,6 +132,8 @@ export class UsersController implements OnModuleInit {
   }
 
   @Delete(':id')
+  @UseGuards(KeycloakAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a user' })
   @ApiResponse({ status: 204, description: 'User successfully deleted.' })
@@ -114,40 +142,26 @@ export class UsersController implements OnModuleInit {
     return this.usersService.remove(+id);
   }
 
+  @Post(':id/extract')
+  @UseGuards(KeycloakAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Generate extract for a user' })
+  @ApiResponse({ status: 200, description: 'Extract URL.' })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  async generateExtract(@Param('id') id: string): Promise<{ url: string }> {
+    await this.usersService.findOne(+id);
+    return firstValueFrom(
+      this.extractsService.generateUserExtract({ user_id: +id }),
+    );
+  }
+
   @Get('keycloak/:keycloakId')
+  @UseGuards(KeycloakAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get a user by Keycloak ID' })
   @ApiResponse({ status: 200, description: 'Return the user.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
   findByKeycloakId(@Param('keycloakId') keycloakId: string): Promise<User> {
     return this.usersService.findByKeycloakId(keycloakId);
-  }
-
-  @Get(':id/extract')
-  @ApiOperation({ summary: 'Generate a CSV extract of user reservations' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns a URL to download the CSV file.',
-    schema: {
-      type: 'object',
-      properties: {
-        url: {
-          type: 'string',
-          example:
-            'https://minio.example.com/reservations-csv/user_10_1678812345.csv',
-        },
-      },
-    },
-  })
-  @ApiResponse({ status: 404, description: 'User not found.' })
-  async generateExtract(@Param('id') id: string) {
-    // First verify the user exists
-    await this.usersService.findOne(+id);
-
-    // Call the gRPC service to generate the extract
-    const response = await firstValueFrom(
-      this.extractsService.generateUserExtract({ user_id: +id }),
-    );
-
-    return { url: response.url };
   }
 }

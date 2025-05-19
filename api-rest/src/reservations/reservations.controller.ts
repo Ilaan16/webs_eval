@@ -8,24 +8,29 @@ import {
   Body,
   Query,
   HttpCode,
-  HttpStatus, UseGuards,
+  HttpStatus,
+  UseGuards,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiQuery, ApiBearerAuth,
+  ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ReservationsService } from './reservations.service';
 import {
   CreateReservationDto,
   UpdateReservationDto,
 } from '../dto/reservations.dto';
-import {KeycloakAuthGuard} from "../auth/keycloak-auth.guard";
+import { KeycloakAuthGuard } from "../auth/keycloak-auth.guard";
 
 @ApiTags('reservations')
 @ApiBearerAuth()
 @UseGuards(KeycloakAuthGuard)
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/reservations')
 export class ReservationsController {
   constructor(private readonly reservationsService: ReservationsService) {}

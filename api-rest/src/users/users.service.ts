@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { CreateUserDto, UpdateUserDto } from '../dto/users.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersService {
@@ -12,7 +13,13 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const user = this.userRepository.create(createUserDto);
+    // Générer un UUID pour keycloak_id s'il n'est pas fourni
+    const userData = {
+      ...createUserDto,
+      keycloak_id: createUserDto.keycloak_id || uuidv4(),
+    };
+    
+    const user = this.userRepository.create(userData);
     return this.userRepository.save(user);
   }
 

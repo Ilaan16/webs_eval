@@ -1,8 +1,9 @@
 const axios = require('axios');
-const {getToken} = require('../setup');
+const {getUsrToken} = require('../setup');
 const {createRoom, defaultRoom} = require("../utils/room.utils");
 const {getUsers} = require("../utils/user.utils");
-const {getPool, closePool} = require("../utils/db.utils");const { Readable } = require('stream');
+const {getPool, closePool} = require("../utils/db.utils");
+const { Readable } = require('stream');
   const csv = require('csv-parser');
 
 
@@ -14,7 +15,7 @@ describe('Reservations E2E Tests', () => {
   let userId;
 
   beforeAll(async () => {
-    token = getToken();
+    token = getUsrToken();
 
     const roomRes = await createRoom({
       base_url: process.env.API_REST_URL,
@@ -175,10 +176,10 @@ describe('Reservations E2E Tests', () => {
       //get the file
 
 
-      console.log('response.data',response.data);
-      console.log('url', url);
+      //console.log('response.data',response.data);
+      //console.log('url', url);
       const file = await axios.get(url);
-      console.log(file.status);
+      //console.log(file.status);
       expect(file.status).toBe(200);
 
       const fileStream = new Readable();
@@ -189,7 +190,7 @@ describe('Reservations E2E Tests', () => {
       fileStream.pipe(csv())
         .on('data', (data) => results.push(data))
         .on('end', () => {
-          console.log(results);
+          //console.log(results);
           // Vérifiez le contenu du fichier CSV
           expect(results.length).toBeGreaterThan(0);
           expect(results[0]).toHaveProperty('reservationId');
@@ -200,7 +201,7 @@ describe('Reservations E2E Tests', () => {
           expect(results[0]).toHaveProperty('status');
         });
     } catch (err) {
-      // console.log(err);
+      // //console.log(err);
       throw err;
     }
   });

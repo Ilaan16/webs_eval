@@ -1,39 +1,46 @@
 const axios = require('axios');
-const {getToken, getAdminToken, verifyJwtToken} = require('../setup');
+const {getUsrToken, getAdmToken, getAdminToken, verifyJwtToken} = require('../setup');
 const {defaultUser} = require("../utils/user.utils");
 
 const BASE_URL = process.env.API_REST_URL || 'http://localhost:3000';
 
-let token = '', adminToken = '';
+let usrToken = '',admToken= '', adminToken = '';
+let timestamp = new Date().getTime();
 
 describe('Users E2E Tests', () => {
   beforeAll(async () => {
     // Récupère le token Keycloak initialisé par setupKeycloak.js
-    token = getToken();
-    expect(token).toBeDefined();
-
-    // Vérification via JWKS
-    const decoded = await verifyJwtToken(token);
-    // On peut maintenant vérifier des champs précis, comme 'email', 'preferred_username', etc.
+    usrToken = getUsrToken();
+    expect(usrToken).toBeDefined();
+    const decoded = await verifyJwtToken(usrToken);
     expect(decoded).toHaveProperty('email');
+
+    admToken = getAdmToken();
+    expect(admToken).toBeDefined();
+    const admDecoded = await verifyJwtToken(admToken);
+    expect(admDecoded).toHaveProperty('email');
+
     adminToken = getAdminToken();
+    expect(adminToken).toBeDefined();
   });
 
   let newUserId;
 
   it('should create a new user', async () => {
 
-    console.log(token);
     try {
       const response = await axios.post(
         `${BASE_URL}/api/users`,
         {
-          email: 'john.doe@foo.bar',
-          password: 'password'
+          email: `john.doe_${timestamp}@foo.bar`,
+          password: 'password',
+          username: `john_doe_${timestamp}`,
+          firstName: "john",
+          lastName: "doe",
         },
         {
           headers: {
-            Authorization: `Bearer ${adminToken}`
+            Authorization: `Bearer ${admToken}`
           }
         });
       expect(response.status).toBe(201);
@@ -43,7 +50,10 @@ describe('Users E2E Tests', () => {
       expect(response.data).toHaveProperty('email');
 
       newUserId = response.data.id;
+      //console.log(response.data);
+      //console.log(newUserId);
     } catch (err) {
+      console.error(err);
       console.error('Error creating user:', err.response.data);
       throw err;
     }
@@ -55,12 +65,12 @@ describe('Users E2E Tests', () => {
       `${BASE_URL}/api/users/${newUserId}`,
       {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${usrToken}`
         }
       }
     );
     expect(response.status).toBe(200);
-    expect(response.data.email).toBe('john.doe@foo.bar');
+    expect(response.data.email).toBe(`john.doe_${timestamp}@foo.bar`);
   });
 
   it('should retrieve the user in list of users', async () => {
@@ -68,7 +78,7 @@ describe('Users E2E Tests', () => {
       `${BASE_URL}/api/users`,
       {
         headers: {
-          Authorization: `Bearer ${adminToken}`
+          Authorization: `Bearer ${usrToken}`
         }
       }
     );
@@ -89,7 +99,7 @@ describe('Users E2E Tests', () => {
         defaultUser,
         {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${usrToken}`
           }
         });
     } catch (err) {

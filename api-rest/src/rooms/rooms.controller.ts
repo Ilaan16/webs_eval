@@ -11,6 +11,8 @@ import {
   HttpStatus,
   UseGuards,
   Optional,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,11 +24,13 @@ import {
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto, UpdateRoomDto } from '../dto/rooms.dto';
 import { KeycloakAuthGuard } from '../auth/keycloak-auth.guard';
+import { Room } from '../entities/room.entity';
 
 @ApiTags('rooms')
 @ApiBearerAuth()
 @UseGuards(KeycloakAuthGuard)
 @Controller('api/rooms')
+@UseInterceptors(ClassSerializerInterceptor)
 export class RoomsController {
   private roomsService: RoomsService;
 
@@ -40,8 +44,9 @@ export class RoomsController {
   @ApiQuery({ name: 'skip', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiResponse({ status: 200, description: 'List of rooms returned' })
-  async findAll(@Query('skip') skip?: number, @Query('limit') limit?: number) {
-    return this.roomsService.findAll({ skip, limit });
+  async findAll(@Query('skip') skip?: number, @Query('limit') limit?: number): Promise<{ rooms: Room[] }> {
+    const rooms = await this.roomsService.findAll({ skip, limit });
+    return { rooms };
   }
 
   @Get(':id')

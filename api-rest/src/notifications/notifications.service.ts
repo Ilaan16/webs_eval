@@ -196,8 +196,14 @@ export class NotificationsService {
   async create(
     createNotificationDto: CreateNotificationDto,
   ): Promise<Notification> {
+    const notificationData = {
+      reservation: { id: createNotificationDto.reservation_id },
+      message: createNotificationDto.message,
+      notification_date: createNotificationDto.notification_date,
+      // is_sent aura sa valeur par défaut de l'entité (false)
+    };
     const notification = this.notificationRepository.create(
-      createNotificationDto,
+      notificationData,
     );
     return this.notificationRepository.save(notification);
   }
