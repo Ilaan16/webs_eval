@@ -14,8 +14,8 @@ export class ExtractsService {
     const reservations = await this.reservationsService.findByUserId(userId);
 
     // Generate CSV content
-    const headers =
-      'reservation_id,user_id,room_id,start_time,end_time,status\n';
+    let csvContent =
+      'reservationId,userId,roomId,startTime,endTime,status\n';
     const rows = reservations
       .map(
         (reservation) =>
@@ -23,7 +23,7 @@ export class ExtractsService {
       )
       .join('\n');
 
-    const csvContent = headers + rows;
+    csvContent += rows;
 
     // Generate unique filename
     const timestamp = new Date().getTime();
