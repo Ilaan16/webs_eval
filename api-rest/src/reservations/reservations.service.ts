@@ -45,7 +45,20 @@ export class ReservationsService {
     updateReservationDto: UpdateReservationDto,
   ): Promise<Reservation> {
     const reservation = await this.findOne(id);
-    Object.assign(reservation, updateReservationDto);
+
+    // Convertir les dates si elles sont présentes
+    if (updateReservationDto.start_time) {
+      reservation.start_time = new Date(updateReservationDto.start_time);
+    }
+    if (updateReservationDto.end_time) {
+      reservation.end_time = new Date(updateReservationDto.end_time);
+    }
+
+    // Mettre à jour le statut si présent
+    if (updateReservationDto.status) {
+      reservation.status = updateReservationDto.status;
+    }
+
     return this.reservationRepository.save(reservation);
   }
 
