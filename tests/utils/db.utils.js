@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '../../.env' });          // Charge les variables d'environnement depuis la racine
+require('dotenv').config();          // Charge les variables d'environnement
 const { Pool } = require('pg');
 
 // Configuration Postgres

@@ -46,10 +46,11 @@ async function getAdminAccessToken() {
 async function cleanupTables() {
     console.log('=== Truncating tables ===');
     // Attention à l’ordre si vous avez des clés étrangères
-    await pool.query('TRUNCATE TABLE notifications RESTART IDENTITY CASCADE;');
-    await pool.query('TRUNCATE TABLE reservations RESTART IDENTITY CASCADE;');
-    await pool.query('TRUNCATE TABLE rooms RESTART IDENTITY CASCADE;');
-    await pool.query('TRUNCATE TABLE "users" RESTART IDENTITY CASCADE;');
+// Utilisation :
+    await safeTruncate(pool, 'notifications');
+    await safeTruncate(pool, 'reservations');
+    await safeTruncate(pool, 'rooms');
+    await safeTruncate(pool, 'users');
 }
 
 async function fetchAndInsertKeycloakUsers(adminToken) {
@@ -74,7 +75,7 @@ async function fetchAndInsertKeycloakUsers(adminToken) {
         await pool.query(
             `INSERT INTO "users" ("keycloak_id", email, "created_at", "updated_at")
        VALUES ($1, $2, NOW(), NOW())
-       ON CONFLICT ("keycloakId") DO NOTHING;`,
+       ON CONFLICT ("keycloak_id") DO NOTHING;`,
             [keycloakId, email]
         );
     }
@@ -99,9 +100,21 @@ async function main() {
     }
 }
 
-// Lancer le script si exécuté directement
-if (require.main === module) {
-    main();
+async function safeTruncate(pool, tableName) {
+    await pool.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '${tableName}') THEN
+        EXECUTE 'TRUNCATE TABLE "${tableName}" RESTART IDENTITY CASCADE';
+      END IF;
+    END
+    $$;
+  `);
 }
 
+
+beforeAll(async () => {
+    console.log('=== Starting cleanupDB script ===');
+    await main();
+}, 10000); // Timeout de 10 secondes pour le beforeAll
 module.exports = { main };
