@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from "typeorm";
 
 @Entity("reservations")
 export class Reservation {
@@ -19,4 +19,7 @@ export class Reservation {
 
   @Column({ default: "pending" })
   status: string;
+
+  @CreateDateColumn({ name: "created_at", type: "timestamp" })
+  createdAt: Date;
 }

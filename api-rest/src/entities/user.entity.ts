@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Expose } from 'class-transformer';
 
@@ -38,4 +39,8 @@ export class User {
   @CreateDateColumn({ type: 'timestamp' })
   @Expose({ name: 'createdAt' })
   created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  @Expose({ name: 'updatedAt' })
+  updated_at: Date;
 }

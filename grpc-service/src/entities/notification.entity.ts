@@ -2,26 +2,30 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  RelationId,
 } from "typeorm";
+import { Reservation } from "./reservation.entity";
 
 @Entity("notifications")
 export class Notification {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: "reservation_id" })
+  @ManyToOne(() => Reservation, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "reservation_id" })
+  reservation: Reservation;
+
+  @RelationId((notification: Notification) => notification.reservation)
   reservationId: number;
 
-  @Column()
+  @Column("text")
   message: string;
 
-  @Column({ default: false, name: "is_sent" })
+  @Column({ type: "boolean", default: false, name: "is_sent" })
   isSent: boolean;
 
   @Column({ name: "notification_date", type: "timestamp" })
   notificationDate: Date;
-
-  @CreateDateColumn({ name: "created_at" })
-  createdAt: Date;
 }

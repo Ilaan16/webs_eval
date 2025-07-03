@@ -42,7 +42,7 @@ async function bootstrap() {
 
   app.enableCors();
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 
   // Ensure proto directories exist
   const protoDir = join(process.cwd(), 'proto');

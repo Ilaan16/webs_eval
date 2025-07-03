@@ -1,15 +1,18 @@
 const {getPackage, getConfig} = require("../utils/grpc.utils");
 const {closePool, getPool} = require("../utils/db.utils");
+const {getUsrToken} = require("../setup");
+const {Metadata} = require("@grpc/grpc-js");
 
 const grpcPackage = getPackage('notification');
 const configGrpc = getConfig();
 const notificationClient = new grpcPackage.NotificationService(configGrpc.url, configGrpc.insecure);
 
-let roomId = '', userId = '', reservationId = '', notificationId = '';
+let roomId = '', userId = '', reservationId = '', notificationId = '', accessToken = '';
 
 
 describe('GRPC Notification Tests', () => {
   beforeAll(async () => {
+    accessToken = getUsrToken();
     const pool = getPool();
     //get user
     // insert room, reservation, user, notification
@@ -47,18 +50,24 @@ describe('GRPC Notification Tests', () => {
     reservationId = reservation.id;
 
 
+    
+  });
+
+  afterAll(async () => {
     await closePool();
   });
 
-  it('should create a notification', async () => {
+  it('should create a notification', (done) => {
     const notification = {
       "reservationId": reservationId,
       "message": 'Hello World',
       "notificationDate": new Date().toISOString(),
     };
     const createNotification = (notification) => {
+      const metadata = new Metadata();
+      metadata.add("authorization", `Bearer ${accessToken}`);
       return new Promise((resolve, reject) => {
-        notificationClient.CreateNotification(notification, (err, response) => {
+        notificationClient.CreateNotification(notification, metadata, (err, response) => {
           if (err) {
             reject(err);
           } else {
@@ -69,14 +78,16 @@ describe('GRPC Notification Tests', () => {
     };
 
 // Usage
-    const response = await createNotification(notification);
-    expect(response).toHaveProperty('id');
-    expect(response.reservationId).toBe(reservationId);
-    expect(response.message).toBe('Hello World');
-    notificationId = response.id;
+    createNotification(notification).then((response) => {
+      expect(response).toHaveProperty('id');
+      expect(response.reservationId).toBe(reservationId);
+      expect(response.message).toBe('Hello World');
+      notificationId = response.id;
+      done();
+    });
   });
 
-  it('should update a notification', async () => {
+  it('should update a notification', (done) => {
     const notification = {
       "id": notificationId,
       "message": 'World Hello',
@@ -84,8 +95,10 @@ describe('GRPC Notification Tests', () => {
     };
 
     const updateNotification = (notification) => {
+      const metadata = new Metadata();
+      metadata.add("authorization", `Bearer ${accessToken}`);
       return new Promise((resolve, reject) => {
-        notificationClient.UpdateNotification(notification, (err, response) => {
+        notificationClient.UpdateNotification(notification, metadata, (err, response) => {
           if (err) {
             reject(err);
           } else {
@@ -96,19 +109,23 @@ describe('GRPC Notification Tests', () => {
     };
 
     // Usage
-    const response = await updateNotification(notification);
-    expect(response).toHaveProperty('id');
-    expect(response.message).toBe('World Hello');
+    updateNotification(notification).then((response) => {
+      expect(response).toHaveProperty('id');
+      expect(response.message).toBe('World Hello');
+      done();
+    });
   });
 
-  it('should get a notification by ID', async () => {
+  it('should get a notification by ID', (done) => {
     const notification = {
       "id": notificationId
     };
 
     const getNotification = (notification) => {
+      const metadata = new Metadata();
+      metadata.add("authorization", `Bearer ${accessToken}`);
       return new Promise((resolve, reject) => {
-        notificationClient.GetNotification(notification, (err, response) => {
+        notificationClient.GetNotification(notification, metadata, (err, response) => {
           if (err) {
             reject(err);
           } else {
@@ -119,8 +136,10 @@ describe('GRPC Notification Tests', () => {
     };
 
 // Usage
-    const response = await getNotification(notification);
-    expect(response).toHaveProperty('id');
-    expect(response.id).toBe(notificationId);
+    getNotification(notification).then((response) => {
+      expect(response).toHaveProperty('id');
+      expect(response.id).toBe(notificationId);
+      done();
+    });
   });
 });

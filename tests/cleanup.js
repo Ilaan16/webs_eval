@@ -2,7 +2,6 @@
 require('dotenv').config();          // Charge les variables d'environnement
 const axios = require('axios');
 const { Pool } = require('pg');
-const request = require("supertest");
 
 // Configuration Postgres
 const pool = new Pool({
@@ -22,23 +21,23 @@ const KEYCLOAK_ADMIN_CLIENT_SECRET = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET ||
 // Fonctions utilitaires
 async function getAdminAccessToken() {
     try {
-        const res = await request(process.env.KEYCLOAK_URL)
-          .post(`/realms/master/protocol/openid-connect/token`)
-          .type('form')
-          .send({
+        const response = await axios.post(
+          `${process.env.KEYCLOAK_URL}/realms/master/protocol/openid-connect/token`,
+          new URLSearchParams({
               grant_type: 'password',
               client_id: KEYCLOAK_ADMIN_CLIENT_ID,
               username: process.env.KEYCLOAK_ADMIN_USERNAME,
               password: process.env.KEYCLOAK_ADMIN_PASSWORD,
-          });
-
-        if (res.status !== 200) {
-            throw new Error(`Impossible de récupérer le token Keycloak: ${res.text}`);
-        }
-
-        return res.body.access_token;
+          }),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          }
+        );
+        return response.data.access_token;
     } catch (err) {
-        console.error('Error fetching admin token:', err);
+        console.error('Error fetching admin token:', err.response ? err.response.data : err.message);
         throw err;
     }
 }

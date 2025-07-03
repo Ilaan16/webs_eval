@@ -16,6 +16,7 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   Res,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/users.dto';
@@ -29,23 +30,32 @@ import {
 } from '@nestjs/swagger';
 import { User } from '../entities/user.entity';
 import { KeycloakAuthGuard } from '../auth/keycloak-auth.guard';
-import { ClientGrpc } from '@nestjs/microservices';
+import { ClientGrpc, RpcException } from '@nestjs/microservices';
 import { Observable, firstValueFrom, of } from 'rxjs';
-import { Response } from 'express';
+import { Response, Request } from 'express';
+import { Metadata } from "@grpc/grpc-js";
 
 interface ExtractsService {
-  generateUserExtract(request: { user_id: number }): Observable<{ url: string }>;
+  generateUserExtract(
+    request: { user_id: number },
+    metadata: Metadata,
+  ): Observable<{ url: string }>;
 }
 
 // Mock service for testing
 class MockExtractsService implements ExtractsService {
-  generateUserExtract(request: { user_id: number }): Observable<{ url: string }> {
+  generateUserExtract(
+    request: { user_id: number },
+    metadata: Metadata,
+  ): Observable<{ url: string }> {
     return of({ url: 'will-be-overwritten-in-onModuleInit' });
   }
 }
 
 @ApiTags('users')
 @Controller('api/users')
+@UseGuards(KeycloakAuthGuard)
+@ApiBearerAuth()
 @UseInterceptors(ClassSerializerInterceptor)
 export class UsersController implements OnModuleInit {
   private extractsService: ExtractsService;
@@ -63,6 +73,7 @@ export class UsersController implements OnModuleInit {
       this.extractsService = new MockExtractsService();
       (this.extractsService as MockExtractsService).generateUserExtract = (
         request: { user_id: number },
+        metadata: Metadata,
       ) => {
         const port = process.env.PORT || 3000;
         return of({
@@ -94,8 +105,6 @@ export class UsersController implements OnModuleInit {
   }
 
   @Get()
-  @UseGuards(KeycloakAuthGuard)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get paginated list of users' })
   @ApiQuery({ name: 'skip', required: false })
   @ApiQuery({ name: 'limit', required: false })
@@ -109,8 +118,6 @@ export class UsersController implements OnModuleInit {
   }
 
   @Get(':id')
-  @UseGuards(KeycloakAuthGuard)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get a user by id' })
   @ApiResponse({ status: 200, description: 'Return the user.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
@@ -119,8 +126,6 @@ export class UsersController implements OnModuleInit {
   }
 
   @Patch(':id')
-  @UseGuards(KeycloakAuthGuard)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update a user' })
   @ApiResponse({ status: 200, description: 'User successfully updated.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
@@ -132,8 +137,6 @@ export class UsersController implements OnModuleInit {
   }
 
   @Delete(':id')
-  @UseGuards(KeycloakAuthGuard)
-  @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a user' })
   @ApiResponse({ status: 204, description: 'User successfully deleted.' })
@@ -143,21 +146,27 @@ export class UsersController implements OnModuleInit {
   }
 
   @Post(':id/extract')
-  @UseGuards(KeycloakAuthGuard)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Generate extract for a user' })
   @ApiResponse({ status: 200, description: 'Extract URL.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
-  async generateExtract(@Param('id') id: string): Promise<{ url: string }> {
+  async generateExtract(
+    @Param('id') id: string,
+    @Req() request: Request,
+  ): Promise<{ url: string }> {
     await this.usersService.findOne(+id);
+
+    const metadata = new Metadata();
+    const authHeader = request.headers.authorization;
+    if (authHeader) {
+      metadata.add('authorization', authHeader);
+    }
+
     return firstValueFrom(
-      this.extractsService.generateUserExtract({ user_id: +id }),
+      this.extractsService.generateUserExtract({ user_id: +id }, metadata),
     );
   }
 
   @Get('keycloak/:keycloakId')
-  @UseGuards(KeycloakAuthGuard)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get a user by Keycloak ID' })
   @ApiResponse({ status: 200, description: 'Return the user.' })
   @ApiResponse({ status: 404, description: 'User not found.' })

@@ -2,6 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { MicroserviceOptions, Transport } from "@nestjs/microservices";
 import { join } from "path";
 import { AppModule } from "./app.module";
+import { Logger } from "@nestjs/common";
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -13,6 +14,7 @@ async function bootstrap() {
         protoPath: join(__dirname, "../proto/service.proto"),
         url: "0.0.0.0:50051",
       },
+      logger: new Logger(),
     }
   );
 

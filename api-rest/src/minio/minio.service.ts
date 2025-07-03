@@ -35,7 +35,18 @@ export class MinioService {
 
   async getPresignedUrl(fileName: string): Promise<string> {
     try {
-      const url = await this.client.presignedGetObject(
+      const externalClient = new Client({
+        endPoint:
+          this.configService.get('MINIO_EXTERNAL_ENDPOINT') ||
+          this.configService.get('MINIO_ENDPOINT') ||
+          'localhost',
+        port: parseInt(this.configService.get('MINIO_PORT') || '9000', 10),
+        useSSL: this.configService.get('MINIO_USE_SSL') === 'true',
+        accessKey: this.configService.get('MINIO_ACCESS_KEY') || 'minioadmin',
+        secretKey: this.configService.get('MINIO_SECRET_KEY') || 'minioadmin',
+      });
+
+      const url = await externalClient.presignedGetObject(
         this.bucketName,
         fileName,
         24 * 60 * 60,

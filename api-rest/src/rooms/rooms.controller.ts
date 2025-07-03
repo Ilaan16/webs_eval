@@ -32,12 +32,7 @@ import { Room } from '../entities/room.entity';
 @Controller('api/rooms')
 @UseInterceptors(ClassSerializerInterceptor)
 export class RoomsController {
-  private roomsService: RoomsService;
-
-  constructor(@Optional() roomsService?: RoomsService) {
-    // Si le service n'est pas injecté (typiquement dans les tests), créer une instance
-    this.roomsService = roomsService || new RoomsService();
-  }
+  constructor(private readonly roomsService: RoomsService) {}
 
   @Get()
   @ApiOperation({ summary: 'Get paginated list of rooms' })
