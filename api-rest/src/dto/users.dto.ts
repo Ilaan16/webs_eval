@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsEmail, IsOptional, IsUUID, IsString, MinLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsEmail,
+  IsOptional,
+  IsUUID,
+  IsString,
+  MinLength,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateUserDto {
@@ -45,7 +52,8 @@ export class CreateUserDto {
   lastName?: string;
 
   @ApiPropertyOptional({
-    description: "ID Keycloak de l'utilisateur (optionnel, un UUID sera généré automatiquement si non fourni)",
+    description:
+      "ID Keycloak de l'utilisateur (optionnel, un UUID sera généré automatiquement si non fourni)",
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @IsOptional()

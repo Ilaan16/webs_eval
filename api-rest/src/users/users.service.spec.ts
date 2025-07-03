@@ -41,6 +41,8 @@ describe('UsersService', () => {
     it('should create a user', async () => {
       const createUserDto: CreateUserDto = {
         email: 'test@example.com',
+        password: 'password123',
+        username: 'testuser',
         keycloak_id: '123',
       };
       const expectedUser: User = {

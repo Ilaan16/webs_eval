@@ -40,6 +40,8 @@ describe('UsersController', () => {
     it('should create a user', async () => {
       const createUserDto: CreateUserDto = {
         email: 'test@example.com',
+        password: 'password123',
+        username: 'testuser',
         keycloak_id: '123',
       };
       const expectedUser: User = {
@@ -79,7 +81,7 @@ describe('UsersController', () => {
 
       const result = await controller.findAll(0, 10);
 
-      expect(result).toEqual(users);
+      expect(result).toEqual({ users });
       expect(service.findAll).toHaveBeenCalledWith({ skip: 0, limit: 10 });
     });
   });

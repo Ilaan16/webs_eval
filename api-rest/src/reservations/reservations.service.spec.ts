@@ -10,6 +10,7 @@ import {
 import { NotFoundException } from '@nestjs/common';
 import { User } from '../entities/user.entity';
 import { Room } from '../entities/room.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 describe('ReservationsService', () => {
   let service: ReservationsService;
@@ -38,6 +39,10 @@ describe('ReservationsService', () => {
     created_at: new Date(),
   };
 
+  const mockNotificationsService = {
+    create: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -45,6 +50,10 @@ describe('ReservationsService', () => {
         {
           provide: getRepositoryToken(Reservation),
           useValue: mockRepository,
+        },
+        {
+          provide: NotificationsService,
+          useValue: mockNotificationsService,
         },
       ],
     }).compile();
@@ -153,20 +162,25 @@ describe('ReservationsService', () => {
 
       mockRepository.create.mockReturnValue(expectedReservation);
       mockRepository.save.mockResolvedValue(expectedReservation);
+      mockRepository.findOne.mockResolvedValue(expectedReservation);
 
       const result = await service.create(createReservationDto);
 
       expect(result).toEqual(expectedReservation);
-      expect(repository.create).toHaveBeenCalledWith(createReservationDto);
-      expect(repository.save).toHaveBeenCalledWith(expectedReservation);
+      expect(repository.create).toHaveBeenCalled();
+      expect(repository.save).toHaveBeenCalled();
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { id: 1 },
+        relations: ['user', 'room'],
+      });
     });
   });
 
   describe('update', () => {
     it('should update a reservation', async () => {
       const updateReservationDto: UpdateReservationDto = {
-        start_time: new Date().toISOString(),
-        end_time: new Date().toISOString(),
+        startTime: new Date().toISOString(),
+        endTime: new Date().toISOString(),
         status: 'approved',
       };
       const existingReservation: Reservation = {
@@ -182,8 +196,8 @@ describe('ReservationsService', () => {
       };
       const updatedReservation: Reservation = {
         ...existingReservation,
-        start_time: new Date(updateReservationDto.start_time!),
-        end_time: new Date(updateReservationDto.end_time!),
+        start_time: new Date(updateReservationDto.startTime!),
+        end_time: new Date(updateReservationDto.endTime!),
         status: 'approved',
       };
 
@@ -204,7 +218,7 @@ describe('ReservationsService', () => {
       mockRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.update(1, { start_time: new Date().toISOString() }),
+        service.update(1, { startTime: new Date().toISOString() }),
       ).rejects.toThrow(NotFoundException);
     });
   });

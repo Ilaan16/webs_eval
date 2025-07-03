@@ -148,16 +148,16 @@ describe('ReservationsController', () => {
   describe('update', () => {
     it('should update a reservation', async () => {
       const updateReservationDto: UpdateReservationDto = {
-        start_time: new Date().toISOString(),
-        end_time: new Date().toISOString(),
+        startTime: new Date().toISOString(),
+        endTime: new Date().toISOString(),
         status: 'approved',
       };
       const expectedReservation: Reservation = {
         id: 1,
         userId: 1,
         roomId: 1,
-        start_time: new Date(updateReservationDto.start_time!),
-        end_time: new Date(updateReservationDto.end_time!),
+        start_time: new Date(updateReservationDto.startTime!),
+        end_time: new Date(updateReservationDto.endTime!),
         status: 'approved',
         created_at: new Date(),
         user: mockUser,
