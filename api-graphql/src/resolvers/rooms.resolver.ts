@@ -14,8 +14,8 @@ export class RoomsResolver {
   }
 
   @Query('room')
-  async getRoom(@Args('id') id: number) {
-    return this.roomsService.findOne(id);
+  async getRoom(@Args('id') id: string) {
+    return this.roomsService.findOne(parseInt(id, 10));
   }
 
   @Mutation('createRoom')
@@ -29,17 +29,17 @@ export class RoomsResolver {
 
   @Mutation('updateRoom')
   async updateRoom(
-    @Args('id') id: number,
+    @Args('id') id: string,
     @Args('name') name?: string,
     @Args('capacity') capacity?: number,
     @Args('location') location?: string,
   ) {
-    return this.roomsService.update(id, { name, capacity, location });
+    return this.roomsService.update(parseInt(id, 10), { name, capacity, location });
   }
 
   @Mutation('deleteRoom')
-  async deleteRoom(@Args('id') id: number) {
-    await this.roomsService.remove(id);
+  async deleteRoom(@Args('id') id: string) {
+    await this.roomsService.remove(parseInt(id, 10));
     return true;
   }
 } 

@@ -19,11 +19,11 @@ input CreateRoomInput {
 scalar DateTime
 
 type Mutation {
-  createReservation(createReservationInput: CreateReservationInput!): Reservation!
+  createReservation(user_id: ID!, room_id: ID!, start_time: DateTime!, end_time: DateTime!): Reservation!
   createRoom(createRoomInput: CreateRoomInput!): Room!
   deleteReservation(id: ID!): Boolean!
   deleteRoom(id: ID!): Boolean!
-  updateReservation(updateReservationInput: UpdateReservationInput!): Reservation!
+  updateReservation(id: ID!, start_time: DateTime, end_time: DateTime): Reservation!
   updateRoom(updateRoomInput: UpdateRoomInput!): Room!
 }
 

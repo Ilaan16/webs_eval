@@ -2,6 +2,8 @@ import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/g
 import { ReservationsService } from '../reservations/reservations.service';
 import { UseGuards } from '@nestjs/common';
 import { KeycloakAuthGuard } from '../auth/keycloak-auth.guard';
+import { Reservation } from '../entities/reservation.entity';
+import { CreateReservationDto, UpdateReservationDto } from '../dto/reservations.dto';
 
 @Resolver('Reservation')
 @UseGuards(KeycloakAuthGuard)
@@ -14,54 +16,53 @@ export class ReservationsResolver {
   }
 
   @Query('reservation')
-  async getReservation(@Args('id') id: number) {
-    return this.reservationsService.findOne(id);
+  async getReservation(@Args('id') id: string) {
+    return this.reservationsService.findOneForGraphQL(parseInt(id, 10));
   }
 
   @Mutation('createReservation')
   async createReservation(
-    @Args('user_id') user_id: number,
-    @Args('room_id') room_id: number,
+    @Args('user_id') user_id: string,
+    @Args('room_id') room_id: string,
     @Args('start_time') start_time: string,
     @Args('end_time') end_time: string,
   ) {
-    return this.reservationsService.create({
+    const createReservationDto: CreateReservationDto = {
       user_id,
       room_id,
       start_time,
       end_time,
-    });
+    };
+    return this.reservationsService.create(createReservationDto);
   }
 
   @Mutation('updateReservation')
   async updateReservation(
-    @Args('id') id: number,
-    @Args('user_id') user_id?: number,
-    @Args('room_id') room_id?: number,
+    @Args('id') id: string,
     @Args('start_time') start_time?: string,
     @Args('end_time') end_time?: string,
   ) {
-    return this.reservationsService.update(id, {
-      user_id,
-      room_id,
+    const updateReservationDto: UpdateReservationDto = {
+      id,
       start_time,
       end_time,
-    });
+    };
+    return this.reservationsService.update(parseInt(id, 10), updateReservationDto);
   }
 
   @Mutation('deleteReservation')
-  async deleteReservation(@Args('id') id: number) {
-    await this.reservationsService.remove(id);
+  async deleteReservation(@Args('id') id: string) {
+    await this.reservationsService.remove(parseInt(id, 10));
     return true;
   }
 
   @ResolveField('user_id')
-  resolveUserId(@Parent() reservation) {
+  resolveUserId(@Parent() reservation: Reservation) {
     return reservation.userId;
   }
 
   @ResolveField('room_id')
-  resolveRoomId(@Parent() reservation) {
+  resolveRoomId(@Parent() reservation: Reservation) {
     return reservation.roomId;
   }
 } 

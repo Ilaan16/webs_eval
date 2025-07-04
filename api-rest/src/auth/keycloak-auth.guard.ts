@@ -5,12 +5,26 @@ import {
     Logger,
 } from '@nestjs/common';
 import {AuthGuard} from '@nestjs/passport';
+import { Reflector } from '@nestjs/core';
 
 @Injectable()
 export class KeycloakAuthGuard extends AuthGuard('jwt') {
     private readonly logger = new Logger(KeycloakAuthGuard.name);
 
+    constructor(private reflector: Reflector) {
+        super();
+    }
+
     canActivate(context: ExecutionContext) {
+        const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
+            context.getHandler(),
+            context.getClass(),
+        ]);
+        
+        if (isPublic) {
+            return true;
+        }
+        
         return super.canActivate(context);
     }
 

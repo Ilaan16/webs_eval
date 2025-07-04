@@ -36,12 +36,20 @@ export class ReservationsService {
     return reservation;
   }
 
+  async findOneForGraphQL(id: number): Promise<Reservation | null> {
+    const reservation = await this.reservationRepository.findOne({
+      where: { id },
+      relations: ['user', 'room'],
+    });
+    return reservation || null;
+  }
+
   async create(
     createReservationDto: CreateReservationDto,
   ): Promise<Reservation> {
     const reservationData = {
-      user: { id: createReservationDto.user_id },
-      room: { id: createReservationDto.room_id },
+      user: { id: parseInt(createReservationDto.user_id, 10) },
+      room: { id: parseInt(createReservationDto.room_id, 10) },
       start_time: new Date(createReservationDto.start_time),
       end_time: new Date(createReservationDto.end_time),
       status: 'pending',
@@ -65,12 +73,6 @@ export class ReservationsService {
   ): Promise<Reservation> {
     const reservation = await this.findOne(id);
 
-    if (updateReservationDto.user_id) {
-      (reservation as any).user = { id: updateReservationDto.user_id };
-    }
-    if (updateReservationDto.room_id) {
-      (reservation as any).room = { id: updateReservationDto.room_id };
-    }
     if (updateReservationDto.start_time) {
       reservation.start_time = new Date(updateReservationDto.start_time);
     }

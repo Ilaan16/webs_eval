@@ -65,16 +65,16 @@ type Mutation {
 
   # -- Reservations --
   createReservation(
-    user_id: Int!,
-    room_id: Int!,
+    user_id: ID!,
+    room_id: ID!,
     start_time: DateTime!,
     end_time: DateTime!
   ): Reservation!
 
   updateReservation(
     id: ID!,
-    user_id: Int,
-    room_id: Int,
+    user_id: ID,
+    room_id: ID,
     start_time: DateTime,
     end_time: DateTime
   ): Reservation!
