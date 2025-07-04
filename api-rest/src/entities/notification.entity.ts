@@ -13,7 +13,7 @@ export class Notification {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Reservation)
+  @ManyToOne(() => Reservation, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'reservation_id' })
   reservation: Reservation;
 

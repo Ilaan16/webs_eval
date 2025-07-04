@@ -3,13 +3,14 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY package*.json ./
-
 RUN npm install
 
 COPY . .
 
+RUN mkdir -p proto
+
 RUN npm run build
 
-EXPOSE 5000
+EXPOSE 50051
 
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/main.js"] 

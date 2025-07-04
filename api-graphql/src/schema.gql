@@ -1,0 +1,63 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input CreateReservationInput {
+  end_time: DateTime!
+  room_id: ID!
+  start_time: DateTime!
+  user_id: ID!
+}
+
+input CreateRoomInput {
+  capacity: Int!
+  location: String!
+  name: String!
+}
+
+"""Date custom scalar type"""
+scalar DateTime
+
+type Mutation {
+  createReservation(user_id: ID!, room_id: ID!, start_time: DateTime!, end_time: DateTime!): Reservation!
+  createRoom(createRoomInput: CreateRoomInput!): Room!
+  deleteReservation(id: ID!): Boolean!
+  deleteRoom(id: ID!): Boolean!
+  updateReservation(id: ID!, start_time: DateTime, end_time: DateTime): Reservation!
+  updateRoom(updateRoomInput: UpdateRoomInput!): Room!
+}
+
+type Query {
+  listReservations(limit: Int, skip: Int): [Reservation!]!
+  listRooms(limit: Int, skip: Int): [Room!]!
+  reservation(id: ID!): Reservation
+  room(id: ID!): Room!
+}
+
+type Reservation {
+  end_time: DateTime!
+  id: ID!
+  room_id: ID!
+  start_time: DateTime!
+  user_id: ID!
+}
+
+type Room {
+  capacity: Int!
+  id: ID!
+  location: String!
+  name: String!
+}
+
+input UpdateReservationInput {
+  end_time: DateTime
+  id: ID!
+  start_time: DateTime
+}
+
+input UpdateRoomInput {
+  capacity: Int
+  id: ID!
+  location: String
+  name: String
+}

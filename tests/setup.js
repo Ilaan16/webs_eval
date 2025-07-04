@@ -1,32 +1,75 @@
 // tests/setupKeycloak.js
-const request = require('supertest');
+const axios = require('axios');
 const jwksClient = require('jwks-rsa');
 const jwt = require('jsonwebtoken');
 
-let keycloakAccessToken = '';
+let keycloakUsrAccessToken = '';
+let keycloakAdmAccessToken = '';
 let keycloakAdminToken = '';
 
 /**
  * Récupère un token Keycloak via le flow "Resource Owner Password Credentials"
  * et le stocke dans keycloakAccessToken.
  */
-async function getKeycloakToken() {
-  const res = await request(process.env.KEYCLOAK_URL)
-    .post(`/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`)
-    .type('form')
-    .send({
-      grant_type: 'password',
-      client_id: process.env.KEYCLOAK_CLIENT_ID,
-      client_secret: process.env.KEYCLOAK_CLIENT_SECRET, // si le client est en mode "confidential"
-      username: process.env.KEYCLOAK_TEST_USERNAME,
-      password: process.env.KEYCLOAK_TEST_PASSWORD,
-    });
-
-  if (res.status !== 200) {
-    throw new Error(`Impossible de récupérer le token Keycloak: ${res.text}`);
+async function getKeycloakUsrToken() {
+  try {
+    const response = await axios.post(
+      `${process.env.KEYCLOAK_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
+      new URLSearchParams({
+        grant_type: 'password',
+        client_id: process.env.KEYCLOAK_CLIENT_ID,
+        client_secret: process.env.KEYCLOAK_CLIENT_SECRET,
+        username: process.env.KEYCLOAK_TEST_USR_USERNAME,
+        password: process.env.KEYCLOAK_TEST_USR_PASSWORD,
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      },
+    );
+    keycloakUsrAccessToken = response.data.access_token;
+  } catch (error) {
+    const simplifiedError = {
+      message: 'Impossible de récupérer le token Keycloak pour USER',
+      status: error.response?.status,
+      data: error.response?.data,
+    };
+    console.error(simplifiedError);
+    throw new Error(JSON.stringify(simplifiedError));
   }
-
-  keycloakAccessToken = res.body.access_token;
+}
+/**
+ * Récupère un token Keycloak via le flow "Resource Owner Password Credentials"
+ * et le stocke dans keycloakAccessToken.
+ */
+async function getKeycloakAdmToken() {
+  try {
+    const response = await axios.post(
+      `${process.env.KEYCLOAK_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
+      new URLSearchParams({
+        grant_type: 'password',
+        client_id: process.env.KEYCLOAK_CLIENT_ID,
+        client_secret: process.env.KEYCLOAK_CLIENT_SECRET,
+        username: process.env.KEYCLOAK_TEST_ADM_USERNAME,
+        password: process.env.KEYCLOAK_TEST_ADM_PASSWORD,
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      },
+    );
+    keycloakAdmAccessToken = response.data.access_token;
+  } catch (error) {
+    const simplifiedError = {
+      message: 'Impossible de récupérer le token Keycloak pour ADM',
+      status: error.response?.status,
+      data: error.response?.data,
+    };
+    console.error(simplifiedError);
+    throw new Error(JSON.stringify(simplifiedError));
+  }
 }
 
 /**
@@ -35,31 +78,39 @@ async function getKeycloakToken() {
  */
 async function getKeycloakAdminToken() {
   try {
-
-    const res = await request(process.env.KEYCLOAK_URL)
-      .post(`/realms/master/protocol/openid-connect/token`)
-      .type('form')
-      .send({
+    const response = await axios.post(
+      `${process.env.KEYCLOAK_URL}/realms/master/protocol/openid-connect/token`,
+      new URLSearchParams({
         grant_type: 'password',
         client_id: 'admin-cli',
         username: process.env.KEYCLOAK_ADMIN_USERNAME,
         password: process.env.KEYCLOAK_ADMIN_PASSWORD,
-      });
-
-    if (res.status !== 200) {
-      throw new Error(`Impossible de récupérer le token Keycloak: ${res.text}`);
-    }
-
-    keycloakAdminToken = res.body.access_token;
-  } catch (err) {
-    console.error('Error fetching admin token:', err);
-    throw err;
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      },
+    );
+    keycloakAdminToken = response.data.access_token;
+  } catch (error) {
+    const simplifiedError = {
+      message: 'Impossible de récupérer le token Keycloak pour ADMIN',
+      status: error.response?.status,
+      data: error.response?.data,
+    };
+    console.error(simplifiedError);
+    throw new Error(JSON.stringify(simplifiedError));
   }
 }
 
 // Getter pour récupérer le token dans d'autres fichiers de test
-function getToken() {
-  return keycloakAccessToken;
+function getUsrToken() {
+  return keycloakUsrAccessToken;
+}
+// Getter pour récupérer le token dans d'autres fichiers de test
+function getAdmToken() {
+  return keycloakAdmAccessToken;
 }
 
 function getAdminToken() {
@@ -111,12 +162,14 @@ async function verifyJwtToken(token) {
 
 // Hook Jest appelé avant tous les tests
 beforeAll(async () => {
-  await getKeycloakToken();
-  await getKeycloakAdminToken();
+  await getKeycloakUsrToken();
+  await getKeycloakAdminToken()
+  await getKeycloakAdmToken();
 }, 30000); // Timeout plus large si nécessaire
 
 module.exports = {
-  getToken,
+  getUsrToken,
+  getAdmToken,
   getAdminToken,
   verifyJwtToken,
 };

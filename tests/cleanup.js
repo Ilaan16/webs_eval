@@ -2,7 +2,6 @@
 require('dotenv').config();          // Charge les variables d'environnement
 const axios = require('axios');
 const { Pool } = require('pg');
-const request = require("supertest");
 
 // Configuration Postgres
 const pool = new Pool({
@@ -22,38 +21,39 @@ const KEYCLOAK_ADMIN_CLIENT_SECRET = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET ||
 // Fonctions utilitaires
 async function getAdminAccessToken() {
     try {
-        const res = await request(process.env.KEYCLOAK_URL)
-          .post(`/realms/master/protocol/openid-connect/token`)
-          .type('form')
-          .send({
+        const response = await axios.post(
+          `${process.env.KEYCLOAK_URL}/realms/master/protocol/openid-connect/token`,
+          new URLSearchParams({
               grant_type: 'password',
               client_id: KEYCLOAK_ADMIN_CLIENT_ID,
               username: process.env.KEYCLOAK_ADMIN_USERNAME,
               password: process.env.KEYCLOAK_ADMIN_PASSWORD,
-          });
-
-        if (res.status !== 200) {
-            throw new Error(`Impossible de récupérer le token Keycloak: ${res.text}`);
-        }
-
-        return res.body.access_token;
+          }),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          }
+        );
+        return response.data.access_token;
     } catch (err) {
-        console.error('Error fetching admin token:', err);
+        console.error('Error fetching admin token:', err.response ? err.response.data : err.message);
         throw err;
     }
 }
 
 async function cleanupTables() {
-    console.log('=== Truncating tables ===');
-    // Attention à l’ordre si vous avez des clés étrangères
-    await pool.query('TRUNCATE TABLE notifications RESTART IDENTITY CASCADE;');
-    await pool.query('TRUNCATE TABLE reservations RESTART IDENTITY CASCADE;');
-    await pool.query('TRUNCATE TABLE rooms RESTART IDENTITY CASCADE;');
-    await pool.query('TRUNCATE TABLE "users" RESTART IDENTITY CASCADE;');
+    //console.log('=== Truncating tables ===');
+    // Attention à l'ordre si vous avez des clés étrangères
+// Utilisation :
+    await safeTruncate(pool, 'notifications');
+    await safeTruncate(pool, 'reservations');
+    await safeTruncate(pool, 'rooms');
+    await safeTruncate(pool, 'users');
 }
 
 async function fetchAndInsertKeycloakUsers(adminToken) {
-    console.log('=== Fetching users from Keycloak ===');
+    //console.log('=== Fetching users from Keycloak ===');
     const url = `${KEYCLOAK_URL}/admin/realms/${KEYCLOAK_REALM}/users?max=1000`;
 
     const res = await axios.get(url, {
@@ -63,7 +63,7 @@ async function fetchAndInsertKeycloakUsers(adminToken) {
     });
 
     const keycloakUsers = res.data; // Liste d'utilisateurs
-    console.log(`Found ${keycloakUsers.length} users in Keycloak.`);
+    //console.log(`Found ${keycloakUsers.length} users in Keycloak.`);
 
     for (const user of keycloakUsers) {
         const keycloakId = user.id; // champ "id" côté Keycloak
@@ -72,9 +72,9 @@ async function fetchAndInsertKeycloakUsers(adminToken) {
         // Insertion dans la table "users" locale
         // Champs : keycloak_id, email, created_at
         await pool.query(
-            `INSERT INTO "users" ("keycloak_id", email, "created_at", "updated_at")
-       VALUES ($1, $2, NOW(), NOW())
-       ON CONFLICT ("keycloakId") DO NOTHING;`,
+            `INSERT INTO "users" ("keycloak_id", email, "created_at")
+       VALUES ($1, $2, NOW())
+       ON CONFLICT ("keycloak_id") DO NOTHING;`,
             [keycloakId, email]
         );
     }
@@ -91,7 +91,7 @@ async function main() {
         // 3) Récupérer la liste des users Keycloak et insérer dans DB
         await fetchAndInsertKeycloakUsers(adminToken);
 
-        console.log('=== Cleanup & Keycloak user sync completed ===');
+        //console.log('=== Cleanup & Keycloak user sync completed ===');
     } catch (err) {
         console.error('Error in cleanupDB script:', err);
     } finally {
@@ -99,9 +99,21 @@ async function main() {
     }
 }
 
-// Lancer le script si exécuté directement
-if (require.main === module) {
-    main();
+async function safeTruncate(pool, tableName) {
+    await pool.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '${tableName}') THEN
+        EXECUTE 'TRUNCATE TABLE "${tableName}" RESTART IDENTITY CASCADE';
+      END IF;
+    END
+    $$;
+  `);
 }
 
+
+beforeAll(async () => {
+    //console.log('=== Starting cleanupDB script ===');
+    await main();
+}, 10000); // Timeout de 10 secondes pour le beforeAll
 module.exports = { main };

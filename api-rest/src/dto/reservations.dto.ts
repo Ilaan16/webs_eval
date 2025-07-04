@@ -33,6 +33,15 @@ export class CreateReservationDto {
   @IsNotEmpty()
   @IsISO8601()
   end_time: string;
+
+  @ApiPropertyOptional({
+    description: 'Statut de la réservation',
+    enum: ['pending', 'approved', 'rejected', 'cancelled'],
+    example: 'pending',
+  })
+  @IsOptional()
+  @IsIn(['pending', 'approved', 'rejected', 'cancelled'])
+  status?: 'pending' | 'approved' | 'rejected' | 'cancelled';
 }
 
 export class UpdateReservationDto {
@@ -52,7 +61,7 @@ export class UpdateReservationDto {
   })
   @IsOptional()
   @IsISO8601()
-  start_time?: string;
+  startTime?: string;
 
   @ApiPropertyOptional({
     description: 'Date et heure de fin (format ISO)',
@@ -60,7 +69,7 @@ export class UpdateReservationDto {
   })
   @IsOptional()
   @IsISO8601()
-  end_time?: string;
+  endTime?: string;
 
   @ApiPropertyOptional({
     description: 'Statut de la réservation',

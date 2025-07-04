@@ -1,0 +1,92 @@
+# ------------------------------
+# Types de base
+# ------------------------------
+
+scalar DateTime
+
+type Room {
+  id: ID!
+  name: String!
+  capacity: Int!
+  location: String
+  created_at: DateTime!
+}
+
+type Reservation {
+  id: ID!
+  user_id: Int!
+  room_id: Int!
+  start_time: DateTime!
+  end_time: DateTime!
+  created_at: DateTime!
+}
+
+type User {
+  id: ID!
+  keycloak_id: String!
+  created_at: DateTime!
+  email: String
+}
+
+type AuthPayload {
+  accessToken: String!
+}
+
+# ------------------------------
+# Queries
+# ------------------------------
+
+type Query {
+  # -- Rooms --
+  listRooms(skip: Int, limit: Int): [Room!]!
+  room(id: ID!): Room
+
+  # -- Reservations --
+  listReservations(skip: Int, limit: Int): [Reservation!]!
+  reservation(id: ID!): Reservation
+
+  # -- Users --
+  listUsers(skip: Int, limit: Int): [User!]!
+  user(id: ID!): User
+}
+
+# ------------------------------
+# Mutations
+# ------------------------------
+
+type Mutation {
+  # -- Users --
+  login(email: String!, password: String!): AuthPayload
+  
+  # -- Rooms --
+  createRoom(name: String!, capacity: Int!, location: String): Room!
+  updateRoom(id: ID!, name: String, capacity: Int, location: String): Room!
+  deleteRoom(id: ID!): Boolean!
+
+  # -- Reservations --
+  createReservation(
+    user_id: ID!,
+    room_id: ID!,
+    start_time: DateTime!,
+    end_time: DateTime!
+  ): Reservation!
+
+  updateReservation(
+    id: ID!,
+    user_id: ID,
+    room_id: ID,
+    start_time: DateTime,
+    end_time: DateTime
+  ): Reservation!
+
+  deleteReservation(id: ID!): Boolean!
+}
+
+# ------------------------------
+# Schema Root
+# ------------------------------
+
+schema {
+  query: Query
+  mutation: Mutation
+} 

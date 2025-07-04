@@ -1,9 +1,10 @@
 const axios = require('axios');
-const {getToken} = require('../setup');
+const {getUsrToken} = require('../setup');
 const {createRoom, defaultRoom} = require("../utils/room.utils");
 const {getUsers} = require("../utils/user.utils");
-const {getPool, closePool} = require("../utils/db.utils");const { Readable } = require('stream');
-  const csv = require('csv-parser');
+const {getPool, closePool} = require("../utils/db.utils");
+const { Readable } = require('stream');
+const csv = require('csv-parser');
 
 
 const BASE_URL = process.env.API_REST_URL;
@@ -12,9 +13,10 @@ describe('Reservations E2E Tests', () => {
   let token;
   let createdRoomId;
   let userId;
+  let createdReservationId;
 
   beforeAll(async () => {
-    token = getToken();
+    token = getUsrToken();
 
     const roomRes = await createRoom({
       base_url: process.env.API_REST_URL,
@@ -28,6 +30,10 @@ describe('Reservations E2E Tests', () => {
       token
     });
     userId = usersRes.data.users[0].id;
+  });
+
+  afterAll(async () => {
+    await closePool();
   });
 
   it('should create a reservation using the created room', async () => {
@@ -66,9 +72,8 @@ describe('Reservations E2E Tests', () => {
     )
     expect(rows).toBeDefined()
     expect(rows.length).toBe(1);
-    expect(rows[0].userId).toBe(userId);
-    expect(rows[0].roomId).toBe(createdRoomId);
-    await closePool();
+    expect(rows[0].user_id).toBe(userId);
+    expect(rows[0].room_id).toBe(createdRoomId);
   });
 
   it('should find a notification in table notifications with this reservation id', async () => {
@@ -76,12 +81,11 @@ describe('Reservations E2E Tests', () => {
     const {rows} = await pool.query(
       `SELECT *
        FROM notifications
-       WHERE "reservationId" = $1`,
+       WHERE "reservation_id" = $1`,
       [createdReservationId]
     );
 
     expect(rows.length).toBe(1);
-    await closePool();
   });
 
   it('should get the created reservation by ID', async () => {
@@ -114,11 +118,10 @@ describe('Reservations E2E Tests', () => {
         }
       }
     );
-
     expect(response.status).toBe(200);
     expect(response.data.id).toBe(createdReservationId);
-    expect(response.data.startTime).toMatch(/2025-06-02T10:00:00.000Z/);
-    expect(response.data.endTime).toMatch(/2025-06-02T12:00:00.000Z/);
+    expect(response.data.startTime).toMatch("2025-06-02T10:00:00.000Z");
+    expect(response.data.endTime).toMatch("2025-06-02T12:00:00.000Z");
     expect(response.data.status).toBe('approved');
   });
 
@@ -128,16 +131,15 @@ describe('Reservations E2E Tests', () => {
     const {rows} = await pool.query(
       `SELECT *
        FROM notifications
-       WHERE "reservationId" = $1`,
+       WHERE "reservation_id" = $1`,
       [createdReservationId]
     );
     expect(rows).toBeDefined()
     expect(rows.length).toBe(2);
-    await closePool();
   });
 
   it('should list reservations (with pagination)', async () => {
-    // On utilise skip=0 / limit=10 à titre d’exemple
+    // On utilise skip=0 / limit=10 à titre d'exemple
     const response = await axios.get(
       `${BASE_URL}/api/reservations?skip=0&limit=10`,
       {
@@ -148,11 +150,11 @@ describe('Reservations E2E Tests', () => {
     );
 
     expect(response.status).toBe(200);
-    expect(Array.isArray(response.data.reservations)).toBe(true);
+    expect(Array.isArray(response.data)).toBe(true);
 
-    // Optionnel : vérifier si la réservation qu’on vient de créer est dans la liste
+    // Optionnel : vérifier si la réservation qu'on vient de créer est dans la liste
     // par exemple en cherchant son ID
-    const found = response.data.reservations.some(
+    const found = response.data.some(
       (r) => r.id === createdReservationId
     );
     expect(found).toBe(true);
@@ -171,36 +173,32 @@ describe('Reservations E2E Tests', () => {
       );
       expect(response.status).toBe(201);
       expect(response.data).toHaveProperty('url');
-      //download url
       const url = response.data.url;
-      //get the file
-
-      console.log('response.data',response.data);
-      console.log('url', url);
-      const file = await axios.get(url);
-      console.log(file.status);
+      const file = await axios.get(url, { responseType: 'stream' });
       expect(file.status).toBe(200);
 
-      const fileStream = new Readable();
-      fileStream.push(file.data);
-      fileStream.push(null);
-
-      const results = [];
-      fileStream.pipe(csv())
-        .on('data', (data) => results.push(data))
-        .on('end', () => {
-          console.log(results);
-          // Vérifiez le contenu du fichier CSV
-          expect(results.length).toBeGreaterThan(0);
-          expect(results[0]).toHaveProperty('reservationId');
-          expect(results[0]).toHaveProperty('userId');
-          expect(results[0]).toHaveProperty('roomId');
-          expect(results[0]).toHaveProperty('startTime');
-          expect(results[0]).toHaveProperty('endTime');
-          expect(results[0]).toHaveProperty('status');
-        });
+      await new Promise((resolve, reject) => {
+        const results = [];
+        file.data
+          .pipe(csv())
+          .on('data', (data) => results.push(data))
+          .on('end', () => {
+            try {
+              expect(results.length).toBeGreaterThan(0);
+              expect(results[0]).toHaveProperty('reservationId');
+              expect(results[0]).toHaveProperty('userId');
+              expect(results[0]).toHaveProperty('roomId');
+              expect(results[0]).toHaveProperty('startTime');
+              expect(results[0]).toHaveProperty('endTime');
+              expect(results[0]).toHaveProperty('status');
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          })
+          .on('error', (error) => reject(error));
+      });
     } catch (err) {
-      console.log(err);
       throw err;
     }
   });
@@ -230,7 +228,7 @@ describe('Reservations E2E Tests', () => {
       );
       throw new Error('Reservation was not deleted properly');
     } catch (error) {
-      // L'API devrait renvoyer une 404 si la ressource n’existe plus
+      // L'API devrait renvoyer une 404 si la ressource n'existe plus
       expect(error.response.status).toBe(404);
     }
   });

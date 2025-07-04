@@ -1,12 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { KeycloakAuthGuard } from './auth/keycloak-auth.guard';
 
-@Controller()
-export class AppController {
-  constructor(private readonly appService: AppService) {}
-
+@Controller('protected')
+export class ProtectedController {
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @UseGuards(KeycloakAuthGuard)
+  getProtectedData() {
+    return { message: 'Vous avez accédé à une route protégée avec Keycloak' };
   }
-} 
+}
