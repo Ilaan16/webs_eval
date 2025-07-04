@@ -1,22 +1,19 @@
-FROM node:20-alpine
+# Dockerfile for grpc service
 
+FROM node:20-alpine AS builder
 WORKDIR /app
-
-# Copier les fichiers de dépendances
 COPY package*.json ./
-RUN npm install
-
-# Copier le reste du code source
+RUN npm ci
 COPY . .
-
-# Créer le dossier proto
-RUN mkdir -p proto
-
-# Compiler le projet
 RUN npm run build
+RUN npm prune --omit=dev
 
-# Exposer le port gRPC
+FROM node:20-alpine
+WORKDIR /app
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+COPY --chown=appuser:appgroup package*.json ./
+RUN npm ci --omit=dev
+COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
+USER appuser
 EXPOSE 50051
-
-# Démarrer l'application
 CMD ["node", "dist/main.js"] 

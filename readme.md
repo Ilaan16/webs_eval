@@ -1,16 +1,21 @@
-# Etape 1 :
+# Guide d'installation
+
+## Etape 1
+
 ```sh
 docker compose up --build
 ```
 
-# Etape 2 :
-```sh 
+## Etape 2
+
+```sh
 cd tests
 npm i
 node init-keycloak.js
 ```
 
-# Etape 3 : 
+## Etape 3
+
 ```sh
 npm run test
 ```
