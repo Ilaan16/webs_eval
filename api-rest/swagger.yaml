@@ -1,0 +1,904 @@
+openapi: 3.0.0
+info:
+  title: Reservation API
+  description: API de gestion des réservations de salles
+  version: 1.0.0
+  contact:
+    name: Support API
+    email: support@example.com
+
+servers:
+  - url: http://localhost:3000
+    description: Serveur de développement
+  - url: https://api.example.com
+    description: Serveur de production
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ========== USERS ENDPOINTS ==========
+  /api/users:
+    get:
+      tags:
+        - users
+      summary: Get paginated list of users
+      description: Récupère une liste paginée des utilisateurs
+      parameters:
+        - name: skip
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+          description: Nombre d'éléments à ignorer
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Nombre maximum d'éléments à retourner
+      responses:
+        '200':
+          description: Liste des utilisateurs retournée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+    post:
+      tags:
+        - users
+      summary: Create a new user
+      description: Crée un nouvel utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserDto'
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+  /api/users/{id}:
+    get:
+      tags:
+        - users
+      summary: Get a user by id
+      description: Récupère un utilisateur par son ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+    patch:
+      tags:
+        - users
+      summary: Update a user
+      description: Met à jour un utilisateur existant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserDto'
+      responses:
+        '200':
+          description: Utilisateur mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+    delete:
+      tags:
+        - users
+      summary: Delete a user
+      description: Supprime un utilisateur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '204':
+          description: Utilisateur supprimé avec succès
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+  /api/users/{id}/extract:
+    post:
+      tags:
+        - users
+      summary: Generate extract for a user
+      description: Génère un extrait pour un utilisateur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: URL de l'extrait généré
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    description: URL pour télécharger l'extrait
+                    example: 'https://minio.example.com/extracts/user-1-extract.csv'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+  /api/users/keycloak/{keycloakId}:
+    get:
+      tags:
+        - users
+      summary: Get a user by Keycloak ID
+      description: Récupère un utilisateur par son ID Keycloak
+      parameters:
+        - name: keycloakId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID Keycloak de l'utilisateur
+      responses:
+        '200':
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+  # ========== ROOMS ENDPOINTS ==========
+  /api/rooms:
+    get:
+      tags:
+        - rooms
+      summary: Get paginated list of rooms
+      description: Récupère une liste paginée des salles
+      parameters:
+        - name: skip
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+          description: Nombre d'éléments à ignorer
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Nombre maximum d'éléments à retourner
+      responses:
+        '200':
+          description: Liste des salles retournée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rooms:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Room'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+    post:
+      tags:
+        - rooms
+      summary: Create a new room
+      description: Crée une nouvelle salle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoomDto'
+      responses:
+        '201':
+          description: Salle créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+  /api/rooms/{id}:
+    get:
+      tags:
+        - rooms
+      summary: Get details of a specific room
+      description: Récupère les détails d'une salle spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la salle
+      responses:
+        '200':
+          description: Détails de la salle retournés
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+    put:
+      tags:
+        - rooms
+      summary: Update an existing room
+      description: Met à jour une salle existante
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la salle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoomDto'
+      responses:
+        '200':
+          description: Salle mise à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+    delete:
+      tags:
+        - rooms
+      summary: Delete a room
+      description: Supprime une salle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la salle
+      responses:
+        '204':
+          description: Salle supprimée avec succès
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+  # ========== RESERVATIONS ENDPOINTS ==========
+  /api/reservations:
+    get:
+      tags:
+        - reservations
+      summary: Get paginated list of reservations
+      description: Récupère une liste paginée des réservations
+      parameters:
+        - name: skip
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+          description: Nombre d'éléments à ignorer
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          description: Nombre maximum d'éléments à retourner
+      responses:
+        '200':
+          description: Liste des réservations retournée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reservation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+    post:
+      tags:
+        - reservations
+      summary: Create a new reservation
+      description: Crée une nouvelle réservation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReservationDto'
+      responses:
+        '201':
+          description: Réservation créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+  /api/reservations/{id}:
+    get:
+      tags:
+        - reservations
+      summary: Get details of a specific reservation
+      description: Récupère les détails d'une réservation spécifique
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la réservation
+      responses:
+        '200':
+          description: Détails de la réservation retournés
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+    put:
+      tags:
+        - reservations
+      summary: Update an existing reservation
+      description: Met à jour une réservation existante
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la réservation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReservationDto'
+      responses:
+        '200':
+          description: Réservation mise à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+    delete:
+      tags:
+        - reservations
+      summary: Delete a reservation
+      description: Supprime une réservation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la réservation
+      responses:
+        '204':
+          description: Réservation supprimée avec succès
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+  /api/reservations/user/{userId}:
+    get:
+      tags:
+        - reservations
+      summary: Get all reservations for a specific user
+      description: Récupère toutes les réservations d'un utilisateur spécifique
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Liste des réservations de l'utilisateur retournée
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reservation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+  /api/reservations/room/{roomId}:
+    get:
+      tags:
+        - reservations
+      summary: Get all reservations for a specific room
+      description: Récupère toutes les réservations d'une salle spécifique
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la salle
+      responses:
+        '200':
+          description: Liste des réservations de la salle retournée
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reservation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+  # ========== PROTECTED ENDPOINT ==========
+  /protected:
+    get:
+      tags:
+        - auth
+      summary: Protected endpoint test
+      description: Endpoint protégé pour tester l'authentification Keycloak
+      responses:
+        '200':
+          description: Accès autorisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Vous avez accédé à une route protégée avec Keycloak'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Keycloak
+
+  schemas:
+    # ========== USER SCHEMAS ==========
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID unique de l'utilisateur
+          example: 1
+        keycloakId:
+          type: string
+          format: uuid
+          description: ID Keycloak de l'utilisateur
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        email:
+          type: string
+          format: email
+          description: Email de l'utilisateur
+          example: 'john.doe@example.com'
+        username:
+          type: string
+          description: Nom d'utilisateur
+          example: 'johndoe'
+        firstName:
+          type: string
+          description: Prénom de l'utilisateur
+          example: 'John'
+        lastName:
+          type: string
+          description: Nom de famille de l'utilisateur
+          example: 'Doe'
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création de l'utilisateur
+          example: '2023-03-18T10:00:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date de dernière modification de l'utilisateur
+          example: '2023-03-18T10:00:00Z'
+
+    CreateUserDto:
+      type: object
+      required:
+        - email
+        - password
+        - username
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email de l'utilisateur
+          example: 'john.doe@example.com'
+        password:
+          type: string
+          minLength: 8
+          description: Mot de passe de l'utilisateur
+          example: 'SecurePassword123'
+        username:
+          type: string
+          description: Nom d'utilisateur
+          example: 'johndoe'
+        firstName:
+          type: string
+          description: Prénom de l'utilisateur
+          example: 'John'
+        lastName:
+          type: string
+          description: Nom de famille de l'utilisateur
+          example: 'Doe'
+        keycloak_id:
+          type: string
+          format: uuid
+          description: ID Keycloak de l'utilisateur (optionnel)
+          example: '123e4567-e89b-12d3-a456-426614174000'
+
+    UpdateUserDto:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email de l'utilisateur
+          example: 'john.doe@example.com'
+
+    # ========== ROOM SCHEMAS ==========
+    Room:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID unique de la salle
+          example: 1
+        name:
+          type: string
+          description: Nom de la salle
+          example: 'Salle A101'
+        capacity:
+          type: integer
+          minimum: 1
+          description: Capacité de la salle
+          example: 20
+        location:
+          type: string
+          description: Emplacement de la salle
+          example: 'Bâtiment A, 1er étage'
+        created_at:
+          type: string
+          format: date-time
+          description: Date de création de la salle
+          example: '2023-03-18T10:00:00Z'
+
+    CreateRoomDto:
+      type: object
+      required:
+        - name
+        - capacity
+      properties:
+        name:
+          type: string
+          description: Nom de la salle
+          example: 'Salle A101'
+        capacity:
+          type: integer
+          minimum: 1
+          description: Capacité de la salle
+          example: 20
+        location:
+          type: string
+          description: Emplacement de la salle
+          example: 'Bâtiment A, 1er étage'
+
+    UpdateRoomDto:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Nom de la salle
+          example: 'Salle A101'
+        capacity:
+          type: integer
+          minimum: 1
+          description: Capacité de la salle
+          example: 20
+        location:
+          type: string
+          description: Emplacement de la salle
+          example: 'Bâtiment A, 1er étage'
+
+    # ========== RESERVATION SCHEMAS ==========
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID unique de la réservation
+          example: 1
+        user:
+          $ref: '#/components/schemas/User'
+        room:
+          $ref: '#/components/schemas/Room'
+        startTime:
+          type: string
+          format: date-time
+          description: Date et heure de début de la réservation
+          example: '2023-03-18T10:00:00Z'
+        endTime:
+          type: string
+          format: date-time
+          description: Date et heure de fin de la réservation
+          example: '2023-03-18T12:00:00Z'
+        status:
+          type: string
+          enum: [pending, approved, rejected, cancelled]
+          description: Statut de la réservation
+          example: 'pending'
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création de la réservation
+          example: '2023-03-18T10:00:00Z'
+
+    CreateReservationDto:
+      type: object
+      required:
+        - user_id
+        - room_id
+        - start_time
+        - end_time
+      properties:
+        user_id:
+          type: integer
+          description: ID de l'utilisateur
+          example: 1
+        room_id:
+          type: integer
+          description: ID de la salle
+          example: 1
+        start_time:
+          type: string
+          format: date-time
+          description: Date et heure de début (format ISO)
+          example: '2023-03-18T10:00:00Z'
+        end_time:
+          type: string
+          format: date-time
+          description: Date et heure de fin (format ISO)
+          example: '2023-03-18T12:00:00Z'
+        status:
+          type: string
+          enum: [pending, approved, rejected, cancelled]
+          description: Statut de la réservation
+          example: 'pending'
+
+    UpdateReservationDto:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          description: ID de l'utilisateur
+          example: 1
+        room_id:
+          type: integer
+          description: ID de la salle
+          example: 1
+        startTime:
+          type: string
+          format: date-time
+          description: Date et heure de début (format ISO)
+          example: '2023-03-18T10:00:00Z'
+        endTime:
+          type: string
+          format: date-time
+          description: Date et heure de fin (format ISO)
+          example: '2023-03-18T12:00:00Z'
+        status:
+          type: string
+          enum: [pending, approved, rejected, cancelled]
+          description: Statut de la réservation
+          example: 'approved'
+
+    # ========== ERROR SCHEMAS ==========
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Message d'erreur
+        statusCode:
+          type: integer
+          description: Code de statut HTTP
+        error:
+          type: string
+          description: Type d'erreur
+
+  responses:
+    BadRequest:
+      description: Requête invalide
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: 'Validation failed'
+            statusCode: 400
+            error: 'Bad Request'
+
+    Unauthorized:
+      description: Non autorisé - Token manquant ou invalide
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: 'Unauthorized'
+            statusCode: 401
+            error: 'Unauthorized'
+
+    NotFound:
+      description: Ressource non trouvée
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: 'Resource not found'
+            statusCode: 404
+            error: 'Not Found'
+
+tags:
+  - name: users
+    description: Gestion des utilisateurs
+  - name: rooms
+    description: Gestion des salles
+  - name: reservations
+    description: Gestion des réservations
+  - name: auth
+    description: Authentification et autorisation
