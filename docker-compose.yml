@@ -67,6 +67,7 @@ services:
       - KEYCLOAK_ISSUER_URL=http://localhost:8080
       - KEYCLOAK_REALM=myrealm
       - KEYCLOAK_CLIENT_ID=myclient
+      - NODE_ENV=production
     volumes:
       - ./api-graphql:/usr/src/app
       - /usr/src/app/node_modules

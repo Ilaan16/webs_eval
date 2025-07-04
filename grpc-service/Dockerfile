@@ -1,19 +1,16 @@
-# Dockerfile for grpc service
-
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-RUN npm prune --omit=dev
-
 FROM node:20-alpine
+
 WORKDIR /app
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-COPY --chown=appuser:appgroup package*.json ./
-RUN npm ci --omit=dev
-COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
-USER appuser
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+RUN mkdir -p proto
+
+RUN npm run build
+
 EXPOSE 50051
+
 CMD ["node", "dist/main.js"] 

@@ -14,10 +14,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
                 cache: true,
                 rateLimit: true,
                 jwksRequestsPerMinute: 5,
-                jwksUri: 'http://localhost:8080/realms/myrealm/protocol/openid-connect/certs',
+                jwksUri: `${configService.get('KEYCLOAK_URL')}/realms/${configService.get('KEYCLOAK_REALM')}/protocol/openid-connect/certs`,
             }),
-            audience: 'account',
-            issuer: 'http://localhost:8080/realms/myrealm',
+            audience: [
+                configService.get('KEYCLOAK_CLIENT_ID'),
+                'account',
+            ],
+            issuer: `${configService.get('KEYCLOAK_ISSUER_URL') || configService.get('KEYCLOAK_URL')}/realms/${configService.get('KEYCLOAK_REALM')}`,
         });
     }
 

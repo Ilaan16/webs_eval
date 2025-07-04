@@ -4,6 +4,7 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 import {AuthGuard} from '@nestjs/passport';
+import {GqlExecutionContext} from '@nestjs/graphql';
 
 @Injectable()
 export class KeycloakAuthGuard extends AuthGuard('jwt') {
@@ -16,5 +17,14 @@ export class KeycloakAuthGuard extends AuthGuard('jwt') {
             throw new UnauthorizedException();
         }
         return user;
+    }
+
+    getRequest(context: ExecutionContext) {
+        // Try HTTP first
+        const req = context.switchToHttp().getRequest();
+        if (req) return req;
+        // GraphQL context fallback
+        const gqlCtx = GqlExecutionContext.create(context).getContext();
+        return gqlCtx.req;
     }
 }

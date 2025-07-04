@@ -12,22 +12,29 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Room } from './entities/room.entity';
 import { Reservation } from './entities/reservation.entity';
+import { Notification } from './entities/notification.entity';
 import { AuthModule } from './auth/auth.module';
+import { GraphQLISODateTime } from '@nestjs/graphql';
 
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       typePaths: ['./**/*.graphql'],
-      definitions: {
-        path: join(process.cwd(), 'src/graphql/graphql.schema.ts'),
-        outputAs: 'class',
-      },
+      ...(process.env.NODE_ENV !== 'production'
+        ? {
+            definitions: {
+              path: join(process.cwd(), 'src/graphql/graphql.schema.ts'),
+              outputAs: 'class',
+            },
+          }
+        : {}),
       context: ({ req }) => ({ req }),
       installSubscriptionHandlers: true,
       playground: true,
+      resolvers: { DateTime: GraphQLISODateTime },
     }),
-    TypeOrmModule.forFeature([User, Room, Reservation]),
+    TypeOrmModule.forFeature([User, Room, Reservation, Notification]),
     AuthModule,
   ],
   providers: [

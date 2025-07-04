@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Reservation } from '../entities/reservation.entity';
+import { Notification } from '../entities/notification.entity';
 import {
   CreateReservationDto,
   UpdateReservationDto,
@@ -12,6 +13,8 @@ export class ReservationsService {
   constructor(
     @InjectRepository(Reservation)
     private readonly reservationRepository: Repository<Reservation>,
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
   ) {}
 
   async findAll({ skip = 0, limit = 10 }): Promise<Reservation[]> {
@@ -36,8 +39,24 @@ export class ReservationsService {
   async create(
     createReservationDto: CreateReservationDto,
   ): Promise<Reservation> {
-    const reservation = this.reservationRepository.create(createReservationDto);
-    return this.reservationRepository.save(reservation);
+    const reservationData = {
+      user: { id: createReservationDto.user_id },
+      room: { id: createReservationDto.room_id },
+      start_time: new Date(createReservationDto.start_time),
+      end_time: new Date(createReservationDto.end_time),
+      status: 'pending',
+    } as any;
+    const newReservation = await this.reservationRepository.save(reservationData);
+
+    await this.notificationRepository.save(
+      this.notificationRepository.create({
+        reservation: { id: newReservation.id } as any,
+        message: `Reservation ${newReservation.id} created.`,
+        notification_date: new Date(),
+      }),
+    );
+
+    return this.findOne(newReservation.id);
   }
 
   async update(
@@ -45,8 +64,31 @@ export class ReservationsService {
     updateReservationDto: UpdateReservationDto,
   ): Promise<Reservation> {
     const reservation = await this.findOne(id);
-    Object.assign(reservation, updateReservationDto);
-    return this.reservationRepository.save(reservation);
+
+    if (updateReservationDto.user_id) {
+      (reservation as any).user = { id: updateReservationDto.user_id };
+    }
+    if (updateReservationDto.room_id) {
+      (reservation as any).room = { id: updateReservationDto.room_id };
+    }
+    if (updateReservationDto.start_time) {
+      reservation.start_time = new Date(updateReservationDto.start_time);
+    }
+    if (updateReservationDto.end_time) {
+      reservation.end_time = new Date(updateReservationDto.end_time);
+    }
+
+    const updatedReservation = await this.reservationRepository.save(reservation);
+
+    await this.notificationRepository.save(
+      this.notificationRepository.create({
+        reservation: { id: updatedReservation.id } as any,
+        message: `Reservation ${updatedReservation.id} updated.`,
+        notification_date: new Date(),
+      }),
+    );
+
+    return this.findOne(updatedReservation.id);
   }
 
   async remove(id: number): Promise<void> {

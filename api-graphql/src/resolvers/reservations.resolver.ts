@@ -1,4 +1,4 @@
-import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
+import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
 import { ReservationsService } from '../reservations/reservations.service';
 import { UseGuards } from '@nestjs/common';
 import { KeycloakAuthGuard } from '../auth/keycloak-auth.guard';
@@ -22,14 +22,14 @@ export class ReservationsResolver {
   async createReservation(
     @Args('user_id') user_id: number,
     @Args('room_id') room_id: number,
-    @Args('start_time') start_time: Date,
-    @Args('end_time') end_time: Date,
+    @Args('start_time') start_time: string,
+    @Args('end_time') end_time: string,
   ) {
     return this.reservationsService.create({
       user_id,
       room_id,
-      start_time: start_time.toISOString(),
-      end_time: end_time.toISOString(),
+      start_time,
+      end_time,
     });
   }
 
@@ -38,14 +38,14 @@ export class ReservationsResolver {
     @Args('id') id: number,
     @Args('user_id') user_id?: number,
     @Args('room_id') room_id?: number,
-    @Args('start_time') start_time?: Date,
-    @Args('end_time') end_time?: Date,
+    @Args('start_time') start_time?: string,
+    @Args('end_time') end_time?: string,
   ) {
     return this.reservationsService.update(id, {
       user_id,
       room_id,
-      start_time: start_time?.toISOString(),
-      end_time: end_time?.toISOString(),
+      start_time,
+      end_time,
     });
   }
 
@@ -53,5 +53,15 @@ export class ReservationsResolver {
   async deleteReservation(@Args('id') id: number) {
     await this.reservationsService.remove(id);
     return true;
+  }
+
+  @ResolveField('user_id')
+  resolveUserId(@Parent() reservation) {
+    return reservation.userId;
+  }
+
+  @ResolveField('room_id')
+  resolveRoomId(@Parent() reservation) {
+    return reservation.roomId;
   }
 } 
